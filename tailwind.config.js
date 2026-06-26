@@ -53,6 +53,10 @@ export default {
           foreground: "hsl(var(--card-foreground))",
         },
       },
+      fontFamily: {
+        kanit: ["Kanit", "sans-serif"],
+        geist: ["Geist", "sans-serif"],
+      },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
@@ -76,12 +80,17 @@ export default {
           "50%": { backgroundPosition: "100% 50%" },
           "100%": { backgroundPosition: "0% 50%" },
         },
+        fadeSlideUp: {
+          "from": { opacity: "0", transform: "translateY(24px)" },
+          "to": { opacity: "1", transform: "translateY(0)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         float: "float 3s ease-in-out infinite",
         gradient: "gradient 3s ease infinite",
+        fadeSlideUp: "fadeSlideUp 0.8s ease forwards",
       },
       boxShadow: {
         "3xl": "0 35px 60px -12px rgba(0, 0, 0, 0.3)",

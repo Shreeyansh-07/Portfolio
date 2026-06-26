@@ -1,640 +1,819 @@
-"use client"
+import { useState, useEffect, useRef } from "react"
+import { motion, useInView } from "framer-motion"
+import { Github, Linkedin, Mail, ArrowUpRight } from "lucide-react"
 
-import { useState, useEffect } from "react"
+// Custom Components
 import {
-  Moon,
-  Sun,
-  Github,
-  Linkedin,
-  Mail,
-  MapPin,
-  ExternalLink,
-  Code,
-  Brain,
-  Server,
-  Cpu,
-  FileText,
-  Zap,
-  Settings,
-  Monitor,
-} from "lucide-react"
-import { Button } from "./components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./components/ui/card"
-import { Badge } from "./components/ui/badge"
+  ContactButton,
+  LiveProjectButton,
+  FadeIn,
+  Magnet,
+  AnimatedText
+} from "./components/components"
+import FoldcraftPage from "./components/FoldcraftPage"
+import LoadingScreen from "./components/LoadingScreen"
+import Scroll3DScene, { preload3DModel } from "./components/Scroll3DScene"
 
-export default function App() {
-  const [darkMode, setDarkMode] = useState(false)
-  const [activeSkillCategory, setActiveSkillCategory] = useState("all")
-
-  // Enhanced typing animation states
-  const [currentJobIndex, setCurrentJobIndex] = useState(0)
-  const [currentText, setCurrentText] = useState("")
-  const [isTyping, setIsTyping] = useState(true)
-  const [charIndex, setCharIndex] = useState(0)
-
-  const jobTitles = [
-    "Java Programmer",
-    "Frontend Developer",
-    "AI Enthusiast",
-    "Full Stack Developer",
-    "Problem Solver",
-    "DSA Enthusiast",
-  ]
-
-  // Typing and backspacing animation effect
-  useEffect(() => {
-    const currentJob = jobTitles[currentJobIndex]
-
-    const timer = setTimeout(
-      () => {
-        if (isTyping) {
-          if (charIndex < currentJob.length) {
-            setCurrentText(currentJob.slice(0, charIndex + 1))
-            setCharIndex(charIndex + 1)
-          } else {
-            // Pause before starting to backspace
-            setTimeout(() => setIsTyping(false), 2000)
-          }
-        } else {
-          if (charIndex > 0) {
-            setCurrentText(currentJob.slice(0, charIndex - 1))
-            setCharIndex(charIndex - 1)
-          } else {
-            // Move to next job title
-            setCurrentJobIndex((prev) => (prev + 1) % jobTitles.length)
-            setIsTyping(true)
-          }
-        }
-      },
-      isTyping ? 50 : 50,
-    ) // Typing speed: 100ms, Backspacing speed: 50ms
-
-    return () => clearTimeout(timer)
-  }, [currentJobIndex, charIndex, isTyping, jobTitles])
+// Smooth CountUp Animation Component using useInView and requestAnimationFrame
+function Counter({ value, suffix = "" }) {
+  const ref = useRef(null)
+  const isInView = useInView(ref, { once: true, margin: "-100px" })
+  const [count, setCount] = useState(0)
 
   useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add("dark")
-    } else {
-      document.documentElement.classList.remove("dark")
+    if (!isInView) return
+
+    const target = parseInt(value, 10)
+    if (isNaN(target)) {
+      setCount(value)
+      return
     }
-  }, [darkMode])
 
-  const skillCategories = [
-    {
-      name: "Programming Languages",
-      icon: <Code className="w-6 h-6" />,
-      color: "from-slate-600 to-blue-700",
-      skills: [
-        { name: "Java", level: "Advanced" },
-        { name: "C", level: "Advanced" },
-        { name: "C++", level: "Advanced" },
-        { name: "JavaScript", level: "Intermediate" },
-        { name: "Python", level: "Advanced" },
-        { name: "TypeScript", level: "Intermediate" },
-      ],
-    },
-    {
-      name: "Frontend & UI",
-      icon: <Monitor className="w-6 h-6" />,
-      color: "from-slate-700 to-blue-600",
-      skills: [
-        { name: "React.js", level: "Advanced" },
-        { name: "Next.js", level: "Advanced" },
-        { name: "Angular", level: "Intermediate" },
-        { name: "Streamlit", level: "Intermediate" },
-        { name: "Tailwind CSS", level: "Advanced" },
-      ],
-    },
-    {
-      name: "AI/ML Technologies",
-      icon: <Brain className="w-6 h-6" />,
-      color: "from-slate-700 to-blue-600",
-      skills: [
-        { name: "Machine Learning", level: "Intermediate" },
-        { name: "Natural Language Processing", level: "Intermediate" },
-        { name: "Vector Databases", level: "Intermediate" },
-        { name: "Text Processing", level: "Advanced" },
-        { name: "AI Models", level: "Intermediate" },
-        { name: "Data Analysis", level: "Advanced" },
-      ],
-    },
-    {
-      name: "Backend & APIs",
-      icon: <Server className="w-6 h-6" />,
-      color: "from-gray-500 to-slate-600",
-      skills: [
-        { name: "Node.js", level: "Advanced" },
-        { name: "FastAPI", level: "Advanced" },
-        { name: "RESTful APIs", level: "Advanced" },
-        { name: "Postman", level: "Advanced" },
-        { name: "API Design", level: "Advanced" },
-      ],
-    },
-    {
-      name: "Data Processing",
-      icon: <FileText className="w-6 h-6" />,
-      color: "from-gray-500 to-slate-600",
-      skills: [
-        { name: "PyMuPDF", level: "Intermediate" },
-        { name: "Tesseract OCR", level: "Intermediate" },
-        { name: "PDF Processing", level: "Advanced" },
-        { name: "Text Chunking", level: "Advanced" },
-        { name: "Embeddings", level: "Intermediate" },
-      ],
-    },
-    {
-      name: "Tools & Platforms",
-      icon: <Settings className="w-6 h-6" />,
-      color: "from-gray-500 to-slate-600",
-      skills: [
-        { name: "Git", level: "Advanced" },
-        { name: "GitHub", level: "Advanced" },
-        { name: "VS Code", level: "Advanced" },
-        { name: "Linux", level: "Intermediate" },
-        { name: "Docker", level: "Intermediate" },
-        { name: "Power BI", level: "Intermediate" },
-      ],
-    },
-  ]
+    const duration = 1500 // 1.5s
+    const startTime = performance.now()
 
-  const projects = [
-    {
-      title: "Opinion Trade",
-      description:
-        "A sophisticated trading platform for opinions and predictions featuring real-time data processing, user engagement systems, and advanced analytics dashboard.",
-      tech: ["React", "Node.js", "MongoDB", "Express", "WebSocket"],
-      link: "https://opiniontrade.onrender.com/",
-      category: "Full Stack",
-      gradient: "from-slate-600 to-blue-700",
-    },
-    {
-      title: "FileQR Karo",
-      description:
-        "Revolutionary file sharing platform with QR code generation, secure file transfers, real-time sharing capabilities, and cross-platform compatibility.",
-      tech: ["React", "Node.js", "File Upload", "QR Generation", "Security"],
-      link: "https://fileqrkaro.onrender.com/",
-      category: "Web App",
-      gradient: "from-slate-600 to-blue-700",
-    },
-    {
-      title: "Bliss Bay Shopping Mall",
-      description:
-        "Comprehensive e-commerce management system with inventory tracking, user authentication, payment integration, and advanced admin dashboard.",
-      tech: ["React", "Next.js", "Database", "Authentication", "Payment"],
-      link: "https://blissbay.onrender.com/",
-      category: "E-commerce",
-      gradient: "from-slate-600 to-blue-700",
-    },
-    {
-      title: "Weather App",
-      description:
-        "Intelligent weather application with location-based forecasts, interactive maps, weather alerts, and beautiful responsive design.",
-      tech: ["React", "Weather API", "Geolocation", "CSS", "Charts"],
-      link: "https://weather-app-lyart-chi.vercel.app/",
-      category: "Frontend",
-      gradient: "from-slate-600 to-blue-700",
-    },
-  ]
+    const animate = (now) => {
+      const elapsed = now - startTime
+      const progress = Math.min(elapsed / duration, 1)
 
-  const scrollToSection = (sectionId) => {
-    document.getElementById(sectionId)?.scrollIntoView({ behavior: "smooth" })
-  }
+      // Easing: easeOutQuad
+      const easeProgress = progress * (2 - progress)
+      const currentCount = Math.floor(easeProgress * target)
 
-  const filteredSkills =
-    activeSkillCategory === "all"
-      ? skillCategories
-      : skillCategories.filter((category) => category.name.toLowerCase().includes(activeSkillCategory))
+      setCount(currentCount)
+
+      if (progress < 1) {
+        requestAnimationFrame(animate)
+      } else {
+        setCount(target)
+      }
+    }
+
+    requestAnimationFrame(animate)
+  }, [isInView, value])
 
   return (
-    <div className={`min-h-screen transition-all duration-500 ${darkMode ? "dark" : ""}`}>
-      <div className="bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 text-gray-900 dark:text-white">
-        {/* Navigation */}
-        <nav className="fixed top-0 w-full bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl z-50 border-b border-gray-200/50 dark:border-gray-700/50 shadow-lg">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center py-4">
-              <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-teal-600 bg-clip-text text-transparent">
-                SS
-              </div>
-              <div className="hidden md:flex space-x-8">
-                {["About", "Skills", "Experience", "Projects", "Education", "Contact"].map((item) => (
-                  <button
-                    key={item}
-                    onClick={() => scrollToSection(item.toLowerCase())}
-                    className="relative px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-300 group"
-                  >
-                    {item}
-                    <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-blue-600 to-purple-600 group-hover:w-full transition-all duration-300"></span>
-                  </button>
-                ))}
-              </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setDarkMode(!darkMode)}
-                className="rounded-full hover:bg-blue-100 dark:hover:bg-gray-800 transition-all duration-300"
-              >
-                {darkMode ? <Sun className="w-5 h-5 text-yellow-500" /> : <Moon className="w-5 h-5 text-blue-600" />}
-              </Button>
-            </div>
-          </div>
-        </nav>
+    <span ref={ref}>
+      {count}
+      {suffix}
+    </span>
+  )
+}
 
-        {/* Hero Section */}
-        <section id="about" className="pt-32 pb-24 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-600/5 via-purple-600/5 to-teal-600/5"></div>
-          <div className="max-w-7xl mx-auto text-center relative">
-            <div className="mb-12">
-              <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
-                Hi, I'm{" "}
-                <span className="bg-gradient-to-r from-slate-800 via-blue-600 to-slate-700 dark:from-blue-400 dark:via-purple-400 dark:to-teal-400 bg-clip-text text-transparent">
-                  Shreeyansh Singh
+// Technology and development work-related images
+const row1Images = [
+  "/tech_code.png",
+  "/IT.jpg",
+  "/Chip.jpg",
+  "/tech_security.png",
+  "/tech_containers.png",
+]
+
+const row2Images = [
+  "/tech_security.png",
+  "/tech_containers.png",
+  "/tech_code.png",
+  "/IT.jpg",
+  "/Chip.jpg",
+]
+
+const tripledRow1 = [...row1Images, ...row1Images, ...row1Images, ...row1Images]
+const tripledRow2 = [...row2Images, ...row2Images, ...row2Images, ...row2Images]
+
+export default function App() {
+  const [currentView, setCurrentView] = useState("landing_page")
+  const [loading, setLoading] = useState(false)
+  const marqueeRef = useRef(null)
+  const [marqueeOffset, setMarqueeOffset] = useState(0)
+
+
+
+  const triggerNavigation = (targetView, targetSection = null) => {
+    if (targetView === "portfolio") {
+      // Start background preloading of the 3D model during the transition screen
+      preload3DModel()
+    }
+    setLoading(true)
+    setTimeout(() => {
+      setCurrentView(targetView)
+      setLoading(false)
+      if (targetSection) {
+        setTimeout(() => {
+          scrollToSection(targetSection)
+        }, 100)
+      }
+    }, 2200)
+  }
+
+  // Passive scroll listener for marquee offset calculation
+  useEffect(() => {
+    if (currentView !== "portfolio") return
+
+    const handleScroll = () => {
+      if (!marqueeRef.current) return
+      const rect = marqueeRef.current.getBoundingClientRect()
+      // get section position relative to page
+      const sectionTop = rect.top + window.scrollY
+      const offset = (window.scrollY - sectionTop + window.innerHeight) * 0.3
+      setMarqueeOffset(offset)
+    }
+
+    window.addEventListener("scroll", handleScroll, { passive: true })
+    handleScroll() // Trigger initial render position
+    return () => window.removeEventListener("scroll", handleScroll)
+  }, [currentView])
+
+  const scrollToSection = (id) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" })
+  }
+
+  if (loading) {
+    return <LoadingScreen />
+  }
+
+  if (currentView === "landing_page") {
+    return <FoldcraftPage onNavigate={(sec) => triggerNavigation("portfolio", sec)} />
+  }
+
+  return (
+    <div className="min-h-screen bg-[#0C0C0C] font-kanit text-[#D7E2EA] overflow-x-clip selection:bg-[#B600A8]/30 selection:text-white">
+
+      {/* 3D Scroll-Triggered Storytelling Scene */}
+      <Scroll3DScene />
+
+      {/* 1. HERO SECTION */}
+      <section className="relative h-screen w-full flex flex-col justify-between overflow-hidden z-20 pb-7 sm:pb-8 md:pb-10">
+
+        {/* Navbar */}
+        <FadeIn
+          as="nav"
+          y={-20}
+          delay={0}
+          className="flex justify-between items-center px-6 md:px-10 pt-6 md:pt-8 w-full z-30"
+        >
+          {/* Main evenly spaced navigation links */}
+          <div className="flex gap-6 sm:gap-10 md:gap-12 justify-start items-center">
+            {["About", "Services", "Projects", "Contact"].map((link) => (
+              <button
+                key={link}
+                onClick={() => {
+                  scrollToSection(link.toLowerCase())
+                }}
+                className="text-[#D7E2EA] font-medium uppercase tracking-wider text-sm md:text-lg lg:text-[1.4rem] transition-opacity duration-200 hover:opacity-70 focus:outline-none"
+              >
+                {link}
+              </button>
+            ))}
+          </div>
+
+          {/* Dedicated Landing Page Showcase Link */}
+          <button
+            onClick={() => triggerNavigation("landing_page")}
+            className="flex items-center gap-2 text-xs sm:text-sm font-semibold uppercase tracking-wider border border-white/20 px-4 py-2 rounded-full backdrop-blur-md bg-white/5 hover:bg-white/10 hover:border-white/40 transition-all duration-300"
+          >
+            Landing Page <ArrowUpRight className="w-3.5 h-3.5" />
+          </button>
+        </FadeIn>
+
+        {/* Absolute Centered Portrait inside Magnet */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 sm:translate-y-0 sm:bottom-0 sm:top-auto z-10">
+          <FadeIn y={30} delay={0.6} duration={1.1}>
+            <Magnet
+              padding={150}
+              strength={3.5}
+              activeTransition="transform 0.3s ease-out"
+              inactiveTransition="transform 0.6s ease-in-out"
+            >
+              <div className="relative w-[280px] sm:w-[360px] md:w-[440px] lg:w-[520px] select-none pointer-events-auto">
+                {/* Backlighting glow */}
+                <div className="absolute -inset-4 bg-gradient-to-tr from-[#7621B0] to-[#B600A8] opacity-35 rounded-full blur-[80px] -z-10 animate-pulse" />
+                <img
+                  src="/portrait_smiling.png"
+                  alt="Shreeyansh Singh Portrait"
+                  draggable="false"
+                  className="w-full h-auto object-contain drop-shadow-[0_15px_30px_rgba(0,0,0,0.8)]"
+                />
+              </div>
+            </Magnet>
+          </FadeIn>
+        </div>
+
+        {/* Hero Heading */}
+        <div className="w-full text-center overflow-hidden z-20 mt-6 sm:mt-4 md:-mt-5 select-none pointer-events-none">
+          <FadeIn y={40} delay={0.15} duration={0.9} as="div">
+            <h1 className="hero-heading font-black uppercase tracking-tight leading-none whitespace-nowrap text-[9vw] sm:text-[9.2vw] md:text-[9.5vw] lg:text-[9.8vw]">
+              Hi, i&apos;m shreeyansh
+            </h1>
+          </FadeIn>
+        </div>
+
+        {/* Bottom Bar details */}
+        <div className="flex justify-between items-end px-6 md:px-10 w-full z-20">
+          <FadeIn y={20} delay={0.35} duration={0.8}>
+            <p className="text-[#D7E2EA] font-light uppercase tracking-wide leading-snug text-[clamp(0.7rem,1.4vw,1.25rem)] max-w-[180px] sm:max-w-[240px] md:max-w-[280px] text-left">
+              Full Stack Developer crafting scalable web applications, AI-powered products, and secure backend systems
+            </p>
+          </FadeIn>
+
+          <FadeIn y={20} delay={0.5} duration={0.8}>
+            <ContactButton label="Contact Me" onClick={() => scrollToSection("contact")} />
+          </FadeIn>
+        </div>
+      </section>
+
+      {/* 2. MARQUEE SECTION */}
+      <section ref={marqueeRef} className="relative bg-[#0C0C0C] pt-24 sm:pt-32 md:pt-40 pb-10 w-full overflow-hidden flex flex-col gap-3 z-20">
+
+        {/* Row 1: moves RIGHT on scroll */}
+        <div className="flex gap-3 overflow-hidden select-none pointer-events-none w-full">
+          <div
+            style={{
+              transform: `translate3d(${marqueeOffset - 200}px, 0, 0)`,
+              willChange: "transform",
+            }}
+            className="flex gap-3 whitespace-nowrap will-change-transform"
+          >
+            {tripledRow1.map((url, i) => (
+              <img
+                key={`r1-${i}`}
+                src={url}
+                alt={`preview-row1-${i}`}
+                loading="lazy"
+                className="w-[420px] h-[270px] rounded-2xl object-cover flex-shrink-0 hover:scale-[1.02] transition-all duration-500"
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Row 2: moves LEFT on scroll */}
+        <div className="flex gap-3 overflow-hidden select-none pointer-events-none w-full">
+          <div
+            style={{
+              transform: `translate3d(${-(marqueeOffset - 200)}px, 0, 0)`,
+              willChange: "transform",
+            }}
+            className="flex gap-3 whitespace-nowrap will-change-transform"
+          >
+            {tripledRow2.map((url, i) => (
+              <img
+                key={`r2-${i}`}
+                src={url}
+                alt={`preview-row2-${i}`}
+                loading="lazy"
+                className="w-[420px] h-[270px] rounded-2xl object-cover flex-shrink-0 hover:scale-[1.02] transition-all duration-500"
+              />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 3. ABOUT SECTION */}
+      <section id="about" className="relative min-h-screen w-full flex flex-col items-center justify-center px-5 sm:px-8 md:px-10 py-20 bg-[#0C0C0C] overflow-hidden select-none">
+
+        {/* Corner 3D Decorative Images */}
+        {/* Top Left: Moon Icon */}
+        <div className="absolute top-[4%] left-[1%] sm:left-[2%] md:left-[4%] z-10 select-none pointer-events-none">
+          <FadeIn x={-80} y={0} delay={0.1} duration={0.9}>
+            <img
+              src="https://shrug-person-78902957.figma.site/_components/v2/ebb2b8f25d8e24d5f0a5ca8af4c950de81aa2fd7/moon_icon.11395d36.png"
+              alt="Decorative Moon"
+              className="w-[120px] sm:w-[160px] md:w-[210px] h-auto object-contain filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.5)]"
+            />
+          </FadeIn>
+        </div>
+
+        {/* Bottom Left: 3D Object */}
+        <div className="absolute bottom-[8%] left-[3%] sm:left-[6%] md:left-[10%] z-10 select-none pointer-events-none">
+          <FadeIn x={-80} y={0} delay={0.25} duration={0.9}>
+            <img
+              src="https://shrug-person-78902957.figma.site/_components/v2/ebb2b8f25d8e24d5f0a5ca8af4c950de81aa2fd7/p59_1.4659672e.png"
+              alt="Decorative 3D element"
+              className="w-[100px] sm:w-[140px] md:w-[180px] h-auto object-contain filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.5)]"
+            />
+          </FadeIn>
+        </div>
+
+        {/* Top Right: Lego Icon */}
+        <div className="absolute top-[4%] right-[1%] sm:right-[2%] md:right-[4%] z-10 select-none pointer-events-none">
+          <FadeIn x={80} y={0} delay={0.15} duration={0.9}>
+            <img
+              src="https://shrug-person-78902957.figma.site/_components/v2/ebb2b8f25d8e24d5f0a5ca8af4c950de81aa2fd7/lego_icon-1.703bb594.png"
+              alt="Decorative Lego"
+              className="w-[120px] sm:w-[160px] md:w-[210px] h-auto object-contain filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.5)]"
+            />
+          </FadeIn>
+        </div>
+
+        {/* Bottom Right: 3D Group */}
+        <div className="absolute bottom-[8%] right-[3%] sm:right-[6%] md:right-[10%] z-10 select-none pointer-events-none">
+          <FadeIn x={80} y={0} delay={0.3} duration={0.9}>
+            <img
+              src="https://shrug-person-78902957.figma.site/_components/v2/ebb2b8f25d8e24d5f0a5ca8af4c950de81aa2fd7/Group_134-1.2e04f3ce.png"
+              alt="Decorative 3D Group"
+              className="w-[130px] sm:w-[170px] md:w-[220px] h-auto object-contain filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.5)]"
+            />
+          </FadeIn>
+        </div>
+
+        {/* Core Contents */}
+        <div className="max-w-[800px] w-full flex flex-col items-center justify-center text-center z-20">
+
+          <FadeIn y={40} delay={0} duration={0.8} className="mb-10 sm:mb-14 md:mb-12">
+            <h2 className="hero-heading font-black uppercase leading-none tracking-tight text-[clamp(3rem,12vw,140px)] md:text-[clamp(3.5rem,11vw,160px)]">
+              About me
+            </h2>
+          </FadeIn>
+
+          <div className="mb-16 sm:mb-16 md:mb-20 px-4 flex flex-col gap-6 text-[#D7E2EA]/90 text-center text-base sm:text-lg md:text-xl font-light leading-relaxed max-w-[700px]">
+            <AnimatedText
+              text="I am a Computer Engineering student and Full Stack Developer focused on building scalable, secure, and intelligent software. My interests span backend engineering, AI systems, cloud technologies, and modern web development. I enjoy transforming ambitious ideas into products that solve meaningful real-world problems."
+              className="block"
+            />
+            <AnimatedText
+              text="Over the past few years, I've built AI-powered platforms, secure web applications, and distributed backend systems while continuously improving my problem-solving skills through competitive programming and hackathons."
+              className="block"
+            />
+            <AnimatedText
+              text="Outside of coding, I enjoy learning new technologies, participating in hackathons, and exploring scalable software architecture."
+              className="block"
+            />
+          </div>
+
+          <FadeIn y={20} delay={0.4} duration={0.8}>
+            <ContactButton label="Contact Me" onClick={() => scrollToSection("contact")} />
+          </FadeIn>
+
+        </div>
+      </section>
+
+      {/* 3.5 HIGHLIGHTS SECTION */}
+      <section className="relative py-20 bg-[#0C0C0C] border-t border-b border-[#D7E2EA]/10 w-full overflow-hidden z-20">
+        <div className="max-w-5xl mx-auto px-5 w-full">
+          <FadeIn y={30} delay={0} duration={0.8} className="text-center mb-12">
+            <h2 className="hero-heading font-black uppercase text-4xl sm:text-5xl tracking-wide">
+              Highlights
+            </h2>
+          </FadeIn>
+
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 sm:gap-6 text-center">
+            {[
+              { val: "6", suf: "+", label: "Hackathon + Paper Presentation Winner" },
+              { val: "150", suf: "+", label: "LeetCode Problems Solved" },
+              { val: "10", suf: "+", label: "Major Projects Built" },
+              { val: "3", suf: "+", label: "Years of Programming Experience" },
+              { val: "100", suf: "%", label: "Passion for Learning" }
+            ].map((stat, idx) => (
+              <FadeIn
+                key={idx}
+                y={20}
+                delay={idx * 0.1}
+                className="flex flex-col items-center justify-center p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm shadow-[0_15px_30px_rgba(0,0,0,0.5)]"
+              >
+                <span className="text-4xl sm:text-5xl font-black text-[#B600A8] mb-2">
+                  <Counter value={stat.val} suffix={stat.suf} />
                 </span>
-              </h1>
-              <div className="mb-8 h-16 flex items-center justify-center">
-                <p className="text-3xl md:text-4xl font-semibold text-slate-600 dark:text-slate-300 transition-all duration-500">
-                  {currentText}
-                  <span className="animate-pulse text-blue-600">|</span>
-                </p>
-              </div>
-              <div className="w-32 h-1.5 bg-gradient-to-r from-slate-600 via-blue-600 to-slate-700 mx-auto mb-12 rounded-full"></div>
-            </div>
-
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-16">
-              <div className="flex items-center gap-3 text-gray-600 dark:text-gray-300 bg-white/50 dark:bg-gray-800/50 px-4 py-2 rounded-full backdrop-blur-sm">
-                <Mail className="w-5 h-5 text-blue-600" />
-                <span className="font-medium">shreeyanshsingh07@gmail.com</span>
-              </div>
-              <div className="flex items-center gap-3 text-gray-600 dark:text-gray-300 bg-white/50 dark:bg-gray-800/50 px-4 py-2 rounded-full backdrop-blur-sm">
-                <MapPin className="w-5 h-5 text-purple-600" />
-                <span className="font-medium">Vasai, India</span>
-              </div>
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-6 justify-center">
-              <Button
-                size="lg"
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 text-lg font-semibold rounded-full shadow-xl hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300"
-                onClick={() => scrollToSection("projects")}
-              >
-                <Zap className="w-5 h-5 mr-2" />
-                View My Work
-              </Button>
-              <Button
-                variant="outline"
-                size="lg"
-                className="px-8 py-4 text-lg font-semibold rounded-full border-2 hover:bg-blue-50 dark:hover:bg-gray-800 transform hover:-translate-y-1 transition-all duration-300 bg-transparent"
-                onClick={() => scrollToSection("contact")}
-              >
-                <Mail className="w-5 h-5 mr-2" />
-                Get In Touch
-              </Button>
-              <Button
-                variant="outline"
-                size="lg"
-                className="px-8 py-4 text-lg font-semibold rounded-full border-2 hover:bg-gray-50 dark:hover:bg-gray-800 transform hover:-translate-y-1 transition-all duration-300 bg-transparent"
-                onClick={() => window.open("https://github.com/ShreeyanshSingh-Raghuvanshi", "_blank")}
-              >
-                <Github className="w-5 h-5 mr-2" />
-                GitHub
-              </Button>
-            </div>
+                <span className="text-xs sm:text-[13px] font-medium uppercase tracking-wider text-[#D7E2EA]/75 leading-tight">
+                  {stat.label}
+                </span>
+              </FadeIn>
+            ))}
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* Skills Section */}
-        <section
-          id="skills"
-          className="py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-gray-50/50 to-blue-50/50 dark:from-gray-800/50 dark:to-gray-900/50"
-        >
-          <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-20">
-              <h2 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                Skills & Expertise
-              </h2>
-              <p className="text-2xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-                Specialized in <span className="font-bold text-blue-600">Java programming</span> and{" "}
-                <span className="font-bold text-purple-600">frontend development</span> with professional experience as
-                a <span className="font-bold text-teal-600">Full Stack Developer</span> and team leadership expertise
-              </p>
-            </div>
+      {/* 4. SERVICES SECTION */}
+      <section id="services" className="relative bg-white text-[#0C0C0C] rounded-t-[40px] sm:rounded-t-[50px] md:rounded-t-[60px] px-5 sm:px-8 md:px-10 py-20 sm:py-24 md:py-32 z-20">
+        <div className="max-w-5xl mx-auto w-full">
 
-            <div className="grid gap-8">
-              {skillCategories.map((category, categoryIndex) => (
-                <Card
-                  key={categoryIndex}
-                  className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm"
+          <h2 className="font-black uppercase text-center text-[#0C0C0C] tracking-tight leading-none mb-16 sm:mb-20 md:mb-28 text-[clamp(3rem,12vw,140px)] md:text-[clamp(3.5rem,11vw,160px)]">
+            Services
+          </h2>
+
+          <div className="flex flex-col border-t border-[#0C0C0C]/15">
+            {[
+              {
+                num: "01",
+                name: "Full Stack Development",
+                desc: "Designing modern web applications using React, Node.js, Spring Boot, Express, and MongoDB with clean architecture and responsive user experiences."
+              },
+              {
+                num: "02",
+                name: "Cloud & System Design",
+                desc: "Architecting secure databases, Dockerized deployments, CI/CD pipelines, and scalable cloud infrastructure for production-ready applications."
+              },
+              {
+                num: "03",
+                name: "Frontend Engineering",
+                desc: "Building responsive, visually engaging, and accessible web applications with modern UI technologies, smooth interactions, and optimized performance."
+              },
+              {
+                num: "04",
+                name: "AI Application",
+                desc: "Building AI-powered assistants, computer vision solutions, intelligent automation systems, and LLM integrations using Python, OpenCV, and modern AI APIs."
+              },
+              {
+                num: "05",
+                name: "Problem Solving",
+                desc: "Applying strong data structures, algorithms, and software engineering principles to build efficient and maintainable software solutions."
+              }
+            ].map((service, index) => (
+              <FadeIn
+                key={service.num}
+                y={30}
+                delay={index * 0.1}
+                duration={0.8}
+                className="flex items-center gap-4 sm:gap-8 md:gap-12 py-8 sm:py-10 md:py-12 border-b border-[#0C0C0C]/15"
+              >
+                {/* Number Left */}
+                <span className="font-black leading-none text-[#0C0C0C] w-[60px] sm:w-[120px] md:w-[160px] text-[clamp(3rem,10vw,140px)]">
+                  {service.num}
+                </span>
+
+                {/* Stacked Details Right */}
+                <div className="flex flex-col gap-1.5 sm:gap-2.5 max-w-2xl">
+                  <h3 className="font-medium uppercase text-[#0C0C0C] text-[clamp(1rem,2.2vw,2.1rem)]">
+                    {service.name}
+                  </h3>
+                  <p className="font-light leading-relaxed text-[#0C0C0C] opacity-60 text-[clamp(0.85rem,1.6vw,1.25rem)]">
+                    {service.desc}
+                  </p>
+                </div>
+              </FadeIn>
+            ))}
+          </div>
+
+        </div>
+      </section>
+
+      {/* 5. PROJECTS SECTION */}
+      <section
+        id="projects"
+        className="relative bg-[#0C0C0C] text-[#D7E2EA] rounded-t-[40px] sm:rounded-t-[50px] md:rounded-t-[60px] -mt-10 sm:-mt-12 md:-mt-14 pt-20 sm:pt-24 md:pt-28 pb-16 z-25"
+      >
+        <div className="max-w-5xl mx-auto px-5 w-full">
+
+          <div className="text-center mb-10 sm:mb-16">
+            <h2 className="hero-heading font-black uppercase tracking-tight leading-none text-[clamp(3rem,12vw,140px)] md:text-[clamp(3.5rem,11vw,160px)]">
+              Projects
+            </h2>
+          </div>
+
+          {/* Sticky Stacking Cards Container */}
+          <div className="flex flex-col gap-[10vh]">
+            {[
+              {
+                num: "01",
+                name: "AI Wearable Pendant",
+                category: "Smart Personal Assistant",
+                desc: "An AI-powered wearable assistant capable of capturing conversations, generating summaries, extracting meeting notes, and enabling intelligent voice-triggered automation.",
+                col1_img1: "/pendant_product.png",
+                col1_img2: "/pendant_usage.png",
+                col2_img: "/pendant_app.png",
+                buttons: [
+                  {
+                    label: "Appreciation Post",
+                    link: "https://www.linkedin.com/posts/sripriyagn7_just-hired-an-intern-who-we-couldnt-say-activity-7398667806042574848-ciXF?utm_source=share&utm_medium=member_android&rcm=ACoAAFVqEEQBHGpAFTSGXXwK7uu6hMQ9E9wdYzw"
+                  }
+                ],
+                tech: ["Python", "OpenCV", "LLMs", "Audio Processing", "AI Integration"]
+              },
+              {
+                num: "02",
+                name: "GovGenie AI Portal",
+                category: "AI Government Platform",
+                desc: "A secure full-stack platform connecting citizens with verified agents using AI-powered verification, OCR, real-time communication, and intelligent document processing.",
+                col1_img1: "/govgenie_secure.png",
+                col1_img2: "/govgenie_auth.png",
+                col2_img: "/govgenie_dashboard.png",
+                buttons: [],
+                tech: ["React", "Node.js", "Express", "MongoDB", "Python", "OpenCV", "Socket.io", "Cloudinary"]
+              },
+              {
+                num: "03",
+                name: "OpinionTrade",
+                category: "Incentivized Polling",
+                desc: "A secure polling platform featuring authentication, voting systems, analytics, and scalable backend architecture.",
+                col1_img1: "/opiniontrade_polls.png",
+                col1_img2: "/opiniontrade_coupons.png",
+                col2_img: "/opiniontrade_trading.png",
+                buttons: [
+                  {
+                    label: "Live Website",
+                    link: "https://opiniontrade.onrender.com/"
+                  },
+                  {
+                    label: "Copyright certificate",
+                    link: "https://www.linkedin.com/posts/shreeyansh-singh-858ab633b_happy-to-share-that-our-project-opiniontrade-activity-7354749746420346881-4qCN?utm_source=share&utm_medium=member_android&rcm=ACoAAFVqEEQBHGpAFTSGXXwK7uu6hMQ9E9wdYzw"
+                  }
+                ],
+                tech: ["React", "Node.js", "Express", "MongoDB", "REST API", "Auth Systems"]
+              }
+            ].map((project, index) => {
+              // Scale factor calculation: targetScale = 1 - (total - 1 - index) * 0.03
+              // const targetScale = 1 - (3 - 1 - index) * 0.03
+              return (
+                <div
+                  key={project.num}
+                  className="sticky top-24 md:top-32 w-full pt-4 pb-12 select-none"
+                  style={{
+                    zIndex: 10 + index,
+                  }}
                 >
-                  <CardHeader className="pb-4">
-                    <div className="flex items-center gap-4 mb-4">
-                      <div className={`p-3 rounded-xl bg-gradient-to-r ${category.color} text-white shadow-lg`}>
-                        {category.icon}
-                      </div>
-                      <CardTitle className="text-2xl font-bold">{category.name}</CardTitle>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                      {category.skills.map((skill, skillIndex) => (
-                        <div key={skillIndex} className="group/skill">
-                          <div className="p-4 rounded-xl bg-gradient-to-br from-white to-gray-50 dark:from-gray-700 dark:to-gray-800 border border-gray-200 dark:border-gray-600 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-                            <h4 className="font-semibold text-gray-900 dark:text-white mb-2">{skill.name}</h4>
-                            <Badge
-                              variant="secondary"
-                              className={`text-xs bg-gradient-to-r ${category.color} text-white border-0`}
-                            >
-                              {skill.level}
-                            </Badge>
-                          </div>
+                  <motion.div
+                    initial={{ scale: 0.95, opacity: 0 }}
+                    whileInView={{ scale: 1, opacity: 1 }}
+                    viewport={{ once: true, margin: "-100px" }}
+                    transition={{ duration: 0.6 }}
+                    style={{
+                      transformOrigin: "top center",
+                      top: `${index * 28}px`,
+                    }}
+                    className="group relative rounded-[40px] sm:rounded-[50px] md:rounded-[60px] border-2 border-[#D7E2EA] bg-[#0C0C0C] p-4 sm:p-6 md:p-8 w-full max-w-5xl shadow-[0_30px_60px_rgba(0,0,0,0.8)]"
+                  >
+                    {/* Top Row */}
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[#D7E2EA]/15 pb-4 mb-4 gap-4">
+                      <div className="flex items-center gap-4">
+                        <span className="font-black text-[clamp(2.5rem,6vw,5.5rem)] text-[#D7E2EA]/30 leading-none">
+                          {project.num}
+                        </span>
+                        <div>
+                          <span className="text-xs uppercase tracking-widest text-[#D7E2EA]/60 block mb-1">
+                            {project.category}
+                          </span>
+                          <h3 className="text-xl sm:text-2xl md:text-3xl font-bold uppercase text-[#D7E2EA]">
+                            {project.name}
+                          </h3>
                         </div>
-                      ))}
+                      </div>
+
+                      <div className="flex flex-wrap gap-3">
+                        {project.buttons.map((btn, btnIdx) => (
+                          <LiveProjectButton key={btnIdx} label={btn.label} onClick={() => window.open(btn.link, "_blank")} />
+                        ))}
+                      </div>
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        </section>
 
-        {/* Experience Section */}
-        <section id="experience" className="py-24 px-4 sm:px-6 lg:px-8">
-          <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-20">
-              <h2 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-teal-600 to-purple-600 bg-clip-text text-transparent">
-                Professional Experience
-              </h2>
-              <p className="text-2xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-                Real-world experience in full-stack development and team leadership
-              </p>
-            </div>
-
-            <Card className="max-w-5xl mx-auto hover:shadow-2xl transition-all duration-500 border-0 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
-              <div className="h-2 bg-gradient-to-r from-teal-500 to-purple-600"></div>
-              <CardHeader className="pb-6">
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-                  <div>
-                    <CardTitle className="text-3xl font-bold mb-2">Full Stack Developer Intern</CardTitle>
-                    <CardDescription className="text-xl text-teal-600 dark:text-teal-400 font-semibold">
-                      Esamyak Software Pvt Ltd
-                    </CardDescription>
-                  </div>
-                  <div className="text-right">
-                    <Badge className="bg-gradient-to-r from-teal-500 to-purple-600 text-white border-0 px-4 py-2 text-sm mb-2">
-                      Frontend Developer Head
-                    </Badge>
-                    <p className="text-gray-600 dark:text-gray-300 font-medium">Team Lead • 5 Developers</p>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="grid md:grid-cols-2 gap-8">
-                  <div>
-                    <h4 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Key Achievements</h4>
-                    <ul className="space-y-3 text-gray-600 dark:text-gray-300">
-                      <li className="flex items-start gap-3">
-                        <div className="w-2 h-2 bg-teal-500 rounded-full mt-2 flex-shrink-0"></div>
-                        <span>Led a team of 5 frontend developers in building scalable web applications</span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <div className="w-2 h-2 bg-purple-500 rounded-full mt-2 flex-shrink-0"></div>
-                        <span>Developed full-stack solutions using modern web technologies</span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
-                        <span>Implemented responsive designs and optimized user experiences</span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <div className="w-2 h-2 bg-slate-500 rounded-full mt-2 flex-shrink-0"></div>
-                        <span>Collaborated with cross-functional teams to deliver high-quality products</span>
-                      </li>
-                    </ul>
-                  </div>
-                  <div>
-                    <h4 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Project Delivered</h4>
-                    <Card className="bg-gradient-to-br from-teal-50 to-purple-50 dark:from-teal-900/20 dark:to-purple-900/20 border border-teal-200 dark:border-teal-700">
-                      <CardContent className="p-6">
-                        <h5 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">PCA Platform</h5>
-                        <p className="text-gray-600 dark:text-gray-300 mb-4 leading-relaxed">
-                          Comprehensive web platform built during internship showcasing full-stack development
-                          capabilities and team collaboration.
-                        </p>
-                        <Button
-                          variant="outline"
-                          className="w-full bg-gradient-to-r from-teal-500 to-purple-600 text-white border-0 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1"
-                          onClick={() => window.open("https://pca.pincodeads.com/", "_blank")}
-                        >
-                          <ExternalLink className="w-4 h-4 mr-2" />
-                          View Live Project
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  </div>
-                </div>
-                <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
-                  <div className="flex flex-wrap gap-3 justify-center">
-                    {[
-                      "Team Leadership",
-                      "Full Stack Development",
-                      "Frontend Architecture",
-                      "Project Management",
-                      "Code Review",
-                      "Mentoring",
-                    ].map((skill) => (
-                      <Badge
-                        key={skill}
-                        variant="secondary"
-                        className="bg-gradient-to-r from-teal-500 to-purple-600 text-white border-0 px-4 py-2 text-sm"
-                      >
-                        {skill}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </section>
-
-        {/* Projects Section */}
-        <section id="projects" className="py-24 px-4 sm:px-6 lg:px-8">
-          <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-20">
-              <h2 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-purple-600 to-teal-600 bg-clip-text text-transparent">
-                Featured Projects
-              </h2>
-              <p className="text-2xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-                Innovative solutions showcasing full-stack development and modern technologies
-              </p>
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-10">
-              {projects.map((project, index) => (
-                <Card
-                  key={index}
-                  className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-3 border-0 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm overflow-hidden"
-                >
-                  <div className={`h-2 bg-gradient-to-r ${project.gradient}`}></div>
-                  <CardHeader className="pb-4">
-                    <div className="flex justify-between items-start mb-4">
-                      <CardTitle className="text-2xl group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:to-purple-600 group-hover:bg-clip-text transition-all duration-300">
-                        {project.title}
-                      </CardTitle>
-                      <Badge
-                        variant="outline"
-                        className={`bg-gradient-to-r ${project.gradient} text-white border-0 px-3 py-1`}
-                      >
-                        {project.category}
-                      </Badge>
+                    {/* Project Description & Tech Stack */}
+                    <div className="mb-4 text-[#D7E2EA] text-xs sm:text-sm md:text-base leading-relaxed border-b border-[#D7E2EA]/10 pb-4">
+                      <p className="mb-3 text-[#D7E2EA]/85 font-light">{project.desc}</p>
+                      <div className="flex flex-wrap gap-2">
+                        {project.tech.map((t) => (
+                          <span key={t} className="text-[10px] uppercase font-mono tracking-widest bg-white/5 border border-white/10 px-2.5 py-0.5 rounded text-[#D7E2EA]/70">
+                            {t}
+                          </span>
+                        ))}
+                      </div>
                     </div>
-                    <CardDescription className="text-lg leading-relaxed text-gray-600 dark:text-gray-300">
-                      {project.description}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex flex-wrap gap-3 mb-6">
-                      {project.tech.map((tech, techIndex) => (
-                        <Badge
-                          key={techIndex}
-                          variant="secondary"
-                          className="text-sm px-3 py-1 bg-gray-100 dark:bg-gray-700"
-                        >
-                          {tech}
-                        </Badge>
-                      ))}
+
+                    {/* Bottom Row: 2-Column Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-10 gap-4 sm:gap-6 mt-4">
+                      {/* Left Column (40%) */}
+                      <div className="md:col-span-4 flex flex-col gap-4">
+                        <img
+                          src={project.col1_img1}
+                          alt={`${project.name} preview 1`}
+                          loading="lazy"
+                          className="w-full object-cover rounded-[30px] sm:rounded-[40px] md:rounded-[50px] border border-[#D7E2EA]/10 hover:border-[#D7E2EA]/30 transition-all duration-500"
+                          style={{ height: "clamp(130px, 16vw, 230px)" }}
+                        />
+                        <img
+                          src={project.col1_img2}
+                          alt={`${project.name} preview 2`}
+                          loading="lazy"
+                          className="w-full object-cover rounded-[30px] sm:rounded-[40px] md:rounded-[50px] border border-[#D7E2EA]/10 hover:border-[#D7E2EA]/30 transition-all duration-500"
+                          style={{ height: "clamp(160px, 22vw, 340px)" }}
+                        />
+                      </div>
+
+                      {/* Right Column (60%) */}
+                      <div className="md:col-span-6">
+                        <img
+                          src={project.col2_img}
+                          alt={`${project.name} preview main`}
+                          loading="lazy"
+                          className="w-full h-full object-cover rounded-[30px] sm:rounded-[40px] md:rounded-[50px] border border-[#D7E2EA]/10 hover:border-[#D7E2EA]/30 transition-all duration-500"
+                          style={{ minHeight: "clamp(300px, 38vw, 590px)" }}
+                        />
+                      </div>
                     </div>
-                    <Button
-                      className={`w-full bg-gradient-to-r ${project.gradient} hover:shadow-lg text-white border-0 py-3 text-lg font-semibold rounded-xl transition-all duration-300 transform hover:-translate-y-1`}
-                      onClick={() => window.open(project.link, "_blank")}
-                    >
-                      <ExternalLink className="w-5 h-5 mr-2" />
-                      View Live Project
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Education Section */}
-        <section
-          id="education"
-          className="py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-purple-50/50 to-teal-50/50 dark:from-purple-900/20 dark:to-teal-900/20"
-        >
-          <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-20">
-              <h2 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-teal-600 to-blue-600 bg-clip-text text-transparent">
-                Education
-              </h2>
-              <p className="text-2xl text-gray-600 dark:text-gray-300">My academic journey and continuous learning</p>
-            </div>
-
-            <Card className="max-w-4xl mx-auto hover:shadow-2xl transition-all duration-500 border-0 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
-              <div className="h-2 bg-gradient-to-r from-teal-500 to-blue-600"></div>
-              <CardHeader className="text-center pb-6">
-                <div className="inline-block p-4 rounded-full bg-gradient-to-r from-teal-100 to-blue-100 dark:from-teal-900/30 dark:to-blue-900/30 mb-6">
-                  <Cpu className="w-12 h-12 text-teal-600" />
+                  </motion.div>
                 </div>
-                <CardTitle className="text-3xl font-bold mb-2">Computer Engineering</CardTitle>
-                <CardDescription className="text-xl text-gray-600 dark:text-gray-300">
-                  Bachelor's Degree • Currently Pursuing
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="text-center">
-                <p className="text-lg text-gray-600 dark:text-gray-300 mb-8 leading-relaxed max-w-2xl mx-auto">
-                  Focused on software development, artificial intelligence, data structures & algorithms, and emerging
-                  technologies. Active participant in coding competitions, hackathons, and technical projects with
-                  hands-on experience in modern development practices.
-                </p>
-                <div className="flex flex-wrap gap-3 justify-center">
+              )
+            })}
+          </div>
+
+        </div>
+      </section>
+
+      <div id="interactive-3d-container" style={{ zIndex: 20, position: "relative" }} className="w-full">
+        {/* 5.5 RECOGNITIONS SECTION */}
+        <section className="relative bg-transparent text-[#D7E2EA] py-20 w-full overflow-hidden border-t border-[#D7E2EA]/10 z-20">
+          <div className="max-w-5xl mx-auto px-5 w-full">
+            <div className="grid grid-cols-1 md:grid-cols-10 gap-8 items-start">
+
+              {/* Left Column (60%): Written content + Cards */}
+              <div className="md:col-span-6 flex flex-col gap-8">
+                <div>
+                  <h2 className="hero-heading font-black uppercase text-4xl sm:text-5xl tracking-wide">
+                    Recognitions
+                  </h2>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   {[
-                    "Data Structures",
-                    "Algorithms",
-                    "Software Engineering",
-                    "Database Systems",
-                    "Web Development",
-                    "AI/ML",
-                    "System Design",
-                    "API Development",
-                  ].map((subject) => (
-                    <Badge
-                      key={subject}
-                      className="bg-gradient-to-r from-teal-500 to-blue-600 text-white border-0 px-4 py-2 text-sm"
+                    { title: "HackX 2.0 Champion", subtitle: "1st Place • FinTech & Digital Economy", desc: "Won first prize in a highly competitive national-level hackathon, building Fintech logic under 36 hours." },
+                    { title: "PixxelHack Winner", subtitle: "National Level Webathon Champion", desc: "Awarded top ranks for engineering production-ready web platforms on tight deadlines." },
+                    { title: "IDEAVERSE Final Winner", subtitle: "AI Innovation Challenge", desc: "Recognized for building next-generation AI platforms solving key enterprise challenges." },
+                    { title: "VNPS", subtitle: "1st Rank Winner", desc: "Secured first place in national level system design and development competition." },
+                    { title: "Oscillation", subtitle: "1st Rank Winner", desc: "Achieved top spot in technical software development code hackathon." },
+                    { title: "LeetCode Practice", subtitle: "150+ LeetCode Solved", desc: "Continuous algorithms and data structures training to build optimal, bug-free applications." }
+                  ].map((rec, idx) => (
+                    <FadeIn
+                      key={idx}
+                      y={30}
+                      delay={idx * 0.08}
+                      className="flex flex-col justify-between p-6 rounded-3xl bg-[#121212]/95 backdrop-blur-md border border-white/10 hover:border-[#B600A8]/30 transition-all duration-300 shadow-[0_15px_30px_rgba(0,0,0,0.4)] relative overflow-hidden group"
                     >
-                      {subject}
-                    </Badge>
+                      <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-[#B600A8]/10 to-transparent rounded-bl-full pointer-events-none opacity-50 group-hover:opacity-100 transition-opacity" />
+                      <div>
+                        <span className="text-3xl mb-4 block">🏆</span>
+                        <h3 className="text-lg font-bold text-white uppercase tracking-wide mb-1 group-hover:text-cyan-400 transition-colors">
+                          {rec.title}
+                        </h3>
+                        <span className="text-xs font-semibold text-cyan-400/90 tracking-wider block mb-3">
+                          {rec.subtitle}
+                        </span>
+                        <p className="text-xs sm:text-sm text-[#D7E2EA]/60 font-light leading-relaxed">
+                          {rec.desc}
+                        </p>
+                      </div>
+                    </FadeIn>
                   ))}
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+
+              {/* Right Column (40%): Empty space for the 3D model */}
+              <div className="hidden md:block md:col-span-4" />
+
+            </div>
           </div>
         </section>
 
-        {/* Contact Section */}
-        <section id="contact" className="py-24 px-4 sm:px-6 lg:px-8">
-          <div className="max-w-7xl mx-auto text-center">
-            <div className="mb-20">
-              <h2 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-blue-600 via-purple-600 to-teal-600 bg-clip-text text-transparent">
-                Let's Connect
+        {/* 5.6 TECH STACK SECTION */}
+        <section id="tech-stack" className="relative bg-transparent text-[#D7E2EA] min-h-[180vh] w-full border-t border-[#D7E2EA]/10 z-20">
+
+          {/* Content Layout - written stuff scrolls past on the left, right side is empty for the model */}
+          <div className="relative max-w-5xl mx-auto px-5 w-full pt-20 pb-32 z-20 grid grid-cols-1 md:grid-cols-10 gap-8">
+
+            {/* Left Column: 5 Tech Categories (Text Content) */}
+            <div className="md:col-span-5 flex flex-col gap-6">
+              <div className="mb-8">
+                <h2 className="hero-heading font-black uppercase text-4xl sm:text-5xl tracking-wide">
+                  Technologies I Work With
+                </h2>
+              </div>
+
+              {[
+                { category: "Frontend", techs: ["React", "Next.js", "Tailwind", "JavaScript"] },
+                { category: "Backend", techs: ["Node.js", "Express", "Spring Boot", "REST API"] },
+                { category: "AI", techs: ["Python", "OpenCV", "LLMs", "Computer Vision"] },
+                { category: "Databases", techs: ["MongoDB", "MySQL"] },
+                { category: "Cloud", techs: ["Docker", "GitHub Actions", "CI/CD"] }
+              ].map((cat, idx) => (
+                <FadeIn
+                  key={idx}
+                  y={20}
+                  delay={idx * 0.08}
+                  className="p-6 rounded-2xl bg-[#121212]/95 backdrop-blur-md border border-white/10 hover:border-cyan-500/20 transition-all duration-300 shadow-[0_15px_30px_rgba(0,0,0,0.2)]"
+                >
+                  <h3 className="text-sm font-bold text-cyan-400 uppercase tracking-widest border-b border-white/10 pb-2 mb-4">
+                    {cat.category}
+                  </h3>
+                  <div className="flex flex-col gap-2 font-mono text-xs text-[#D7E2EA]/85">
+                    {cat.techs.map((t, tIdx) => (
+                      <span key={tIdx} className="tracking-wide">
+                        {t}
+                      </span>
+                    ))}
+                  </div>
+                </FadeIn>
+              ))}
+            </div>
+
+            {/* Right Column: Empty side for the 3D neural core video to travel diagonally */}
+            <div className="hidden md:block md:col-span-5" />
+
+          </div>
+        </section>
+
+        {/* 5.7 WHY CHOOSE ME SECTION */}
+        <section className="relative bg-transparent text-[#D7E2EA] py-20 w-full border-t border-[#D7E2EA]/10 z-20">
+          <div className="max-w-5xl mx-auto px-5 w-full">
+            <div className="grid grid-cols-1 md:grid-cols-10 gap-8 items-start">
+
+              {/* Left Column (40%): Empty space for the 3D model */}
+              <div className="hidden md:block md:col-span-4" />
+
+              {/* Right Column (60%): Written content + Cards */}
+              <div className="md:col-span-6 flex flex-col gap-8">
+                <div>
+                  <h2 className="hero-heading font-black uppercase text-4xl sm:text-5xl tracking-wide">
+                    Why Choose Me?
+                  </h2>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  {[
+                    { icon: "🚀", title: "Scalable Development", desc: "Applications built with maintainability, clean coding architecture, and high performance in mind." },
+                    { icon: "🤖", title: "AI Expertise", desc: "Practical, hands-on experience integrating advanced AI pipelines into production-ready web systems." },
+                    { icon: "🏆", title: "Hackathon Mindset", desc: "Experienced in delivering functional, innovative engineering solutions under tight project deadlines." },
+                    { icon: "📈", title: "Continuous Learning", desc: "Always exploring modern cloud architectures, algorithms, and next-generation framework stacks." }
+                  ].map((card, idx) => (
+                    <FadeIn
+                      key={idx}
+                      y={30}
+                      delay={idx * 0.1}
+                      className="p-6 rounded-3xl bg-[#121212]/95 backdrop-blur-md border border-white/10 hover:border-[#B600A8]/30 transition-all duration-300 shadow-[0_15px_30px_rgba(0,0,0,0.3)] text-left flex flex-col justify-between"
+                    >
+                      <div>
+                        <span className="text-3xl mb-4 block">{card.icon}</span>
+                        <h3 className="text-md font-bold text-white uppercase tracking-wider mb-2">
+                          {card.title}
+                        </h3>
+                        <p className="text-xs sm:text-sm text-[#D7E2EA]/60 font-light leading-relaxed">
+                          {card.desc}
+                        </p>
+                      </div>
+                    </FadeIn>
+                  ))}
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </section>
+
+        {/* 6. CONTACT / FOOTER SECTION */}
+        <section id="contact" className="relative py-24 px-4 sm:px-6 lg:px-8 border-t border-[#D7E2EA]/10 bg-gradient-to-b from-transparent to-[#0C0C0C] z-20">
+          <div className="max-w-7xl mx-auto text-center flex flex-col items-center">
+
+            <FadeIn y={30} delay={0} duration={0.8} className="mb-6">
+              <h2 className="hero-heading font-black uppercase text-4xl sm:text-5xl md:text-6xl">
+                Let&apos;s Build Something Great Together
               </h2>
-              <p className="text-2xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-                Ready to collaborate on innovative projects and bring ideas to life
+            </FadeIn>
+
+            <FadeIn y={20} delay={0.15} duration={0.8} className="mb-12">
+              <p className="text-[#D7E2EA]/75 text-base sm:text-lg md:text-xl max-w-2xl mx-auto leading-relaxed font-light">
+                Whether you&apos;re looking to build a modern web application, an AI-powered product, or a scalable backend system, I&apos;d love to discuss your ideas and help turn them into reality.
               </p>
-            </div>
+            </FadeIn>
 
-            <div className="flex flex-col sm:flex-row gap-8 justify-center">
-              <Button
-                size="lg"
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-10 py-6 text-xl font-semibold rounded-2xl shadow-2xl hover:shadow-3xl transform hover:-translate-y-2 transition-all duration-300"
-                onClick={() =>
-                  window.open(
-                    "https://www.linkedin.com/in/shreeyansh-singh-858ab633b?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app",
-                    "_blank",
-                  )
-                }
+            {/* Social links */}
+            <FadeIn y={20} delay={0.3} duration={0.8} className="flex flex-wrap justify-center gap-6 sm:gap-8 mb-16">
+              <a
+                href="https://www.linkedin.com/in/shreeyansh-singh-858ab633b"
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-2 border border-[#D7E2EA]/20 rounded-full px-6 py-3 backdrop-blur-md bg-white/5 hover:bg-white hover:text-black hover:border-white transition-all duration-300 font-medium"
               >
-                <Linkedin className="w-6 h-6 mr-3" />
+                <Linkedin className="w-5 h-5 text-blue-400" />
                 LinkedIn
-              </Button>
-              <Button
-                variant="outline"
-                size="lg"
-                className="px-10 py-6 text-xl font-semibold rounded-2xl border-2 hover:bg-gray-50 dark:hover:bg-gray-800 transform hover:-translate-y-2 transition-all duration-300 bg-transparent"
-                onClick={() => window.open("https://github.com/ShreeyanshSingh-Raghuvanshi", "_blank")}
+              </a>
+              <a
+                href="https://github.com/Shreeyansh-07"
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-2 border border-[#D7E2EA]/20 rounded-full px-6 py-3 backdrop-blur-md bg-white/5 hover:bg-white hover:text-black hover:border-white transition-all duration-300 font-medium"
               >
-                <Github className="w-6 h-6 mr-3" />
+                <Github className="w-5 h-5 text-slate-300" />
                 GitHub
-              </Button>
-              <Button
-                variant="outline"
-                size="lg"
-                className="px-10 py-6 text-xl font-semibold rounded-2xl border-2 hover:bg-blue-50 dark:hover:bg-gray-800 transform hover:-translate-y-2 transition-all duration-300 bg-transparent"
-                onClick={() => window.open("mailto:shreeyanshsingh07@gmail.com", "_blank")}
+              </a>
+              <a
+                href="mailto:shreeyanshsingh07@gmail.com"
+                className="flex items-center gap-2 border border-[#D7E2EA]/20 rounded-full px-6 py-3 backdrop-blur-md bg-white/5 hover:bg-white hover:text-black hover:border-white transition-all duration-300 font-medium"
               >
-                <Mail className="w-6 h-6 mr-3" />
-                Email
-              </Button>
-            </div>
-          </div>
-        </section>
+                <Mail className="w-5 h-5 text-teal-400" />
+                Get In Touch
+              </a>
+            </FadeIn>
 
-        {/* Footer */}
-        <footer className="py-12 px-4 sm:px-6 lg:px-8 border-t border-gray-200/50 dark:border-gray-700/50 bg-gradient-to-r from-gray-50/50 to-blue-50/50 dark:from-gray-800/50 dark:to-gray-900/50">
-          <div className="max-w-7xl mx-auto text-center">
-            <div className="mb-6">
-              <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-teal-600 bg-clip-text text-transparent mb-4">
+            {/* Footer Text */}
+            <div className="w-full border-t border-[#D7E2EA]/10 pt-10">
+              <blockquote className="text-[#D7E2EA]/50 italic font-mono text-xs sm:text-sm max-w-lg mx-auto mb-8">
+                &ldquo;Building software that solves problems, scales with growth, and creates impact.&rdquo;
+              </blockquote>
+              <div className="text-2xl font-bold hero-heading uppercase tracking-widest mb-4">
                 Shreeyansh Singh
               </div>
-              <p className="text-gray-600 dark:text-gray-300 text-lg">
-                Building the future with code, creativity, and innovation
+              <p className="text-[#D7E2EA]/40 text-sm">
+                © 2026 Shreeyansh Singh. Engineered with React, Tailwind CSS, & Framer Motion.
               </p>
             </div>
-            <div className="w-24 h-1 bg-gradient-to-r from-blue-600 to-purple-600 mx-auto mb-6 rounded-full"></div>
-            <p className="text-gray-500 dark:text-gray-400 text-lg">
-              © 2025 Shreeyansh Singh. Crafted with React & Next.js
-            </p>
+
           </div>
-        </footer>
+        </section>
+
       </div>
     </div>
   )
