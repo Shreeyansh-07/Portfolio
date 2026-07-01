@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react"
 import { motion, useInView } from "framer-motion"
-import { Github, Linkedin, Mail, ArrowUpRight } from "lucide-react"
+import { Github, Linkedin, Mail, ArrowUpRight, ChevronDown, Sparkles, Bot, X } from "lucide-react"
+import { Joyride } from "react-joyride"
 
 // Custom Components
 import {
@@ -80,11 +81,203 @@ const row2Images = [
 const tripledRow1 = [...row1Images, ...row1Images, ...row1Images, ...row1Images]
 const tripledRow2 = [...row2Images, ...row2Images, ...row2Images, ...row2Images]
 
+// Accordion Item Component for "People also ask"
+function AccordionItem({ question, answer, isOpen, onToggle }) {
+  return (
+    <div className="border-b border-white/10 py-4">
+      <button 
+        onClick={onToggle}
+        className="w-full flex justify-between items-center text-left py-2 hover:text-[#B600A8] transition-colors focus:outline-none cursor-pointer"
+      >
+        <span className="text-sm sm:text-base font-medium text-[#D7E2EA]">{question}</span>
+        <ChevronDown className={`w-4 h-4 text-cyan-400 transition-transform duration-300 ${isOpen ? 'rotate-180' : 'rotate-0'}`} />
+      </button>
+      <motion.div
+        initial={false}
+        animate={{ height: isOpen ? "auto" : 0, opacity: isOpen ? 1 : 0 }}
+        transition={{ duration: 0.3 }}
+        className="overflow-hidden"
+      >
+        <div className="py-2 text-[#D7E2EA]/70 font-light text-xs sm:text-sm leading-relaxed whitespace-pre-line">
+          {answer}
+        </div>
+      </motion.div>
+    </div>
+  )
+}
+
+// Typewriter effect for Chatbot
+function TypewriterText({ text }) {
+  const [displayedText, setDisplayedText] = useState("")
+  useEffect(() => {
+    let i = 0
+    setDisplayedText("")
+    const interval = setInterval(() => {
+      setDisplayedText(text.slice(0, i + 1))
+      i++
+      if (i >= text.length) clearInterval(interval)
+    }, 15)
+    return () => clearInterval(interval)
+  }, [text])
+  return <span>{displayedText}</span>
+}
+
+// Predefined Chatbot Widget Component
+function ChatbotWidget() {
+  const [isOpen, setIsOpen] = useState(false)
+  const [selectedQuestion, setSelectedQuestion] = useState(null)
+  
+  const qaPairs = [
+    {
+      q: "What is Shreeyansh's background?",
+      a: "Shreeyansh is a Computer Engineering student at VCET, Mumbai, passionate about building intelligent, user-focused web applications and AI systems."
+    },
+    {
+      q: "What are his top skills?",
+      a: "His core tech stack includes Java (Spring Boot), JavaScript (React, Node.js, Express), Python, MongoDB, MySQL, Docker, and CI/CD pipelines."
+    },
+    {
+      q: "Any internship experience?",
+      a: "Yes! He worked as a Full Stack Intern at ESAMYAK SOFTWARE (Jun–Jul 2025), where he led a team of 10, built secure REST services, and optimized system performance by 35%."
+    },
+    {
+      q: "How can I hire him?",
+      a: "You can contact him directly via email at shreeyanshsingh07@gmail.com, connect on LinkedIn, or download his resume from the About section."
+    }
+  ]
+
+  return (
+    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3 max-w-[360px] w-[90vw]">
+      {isOpen ? (
+        <>
+          {/* Chat Window */}
+          <div className="bg-[#121214]/95 border border-white/10 rounded-3xl shadow-2xl p-5 w-full backdrop-blur-md flex flex-col gap-4 text-left">
+            {/* Header */}
+            <div className="flex items-center gap-3 border-b border-white/5 pb-3">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#7621B0] to-[#B600A8] flex items-center justify-center shadow-md">
+                <Sparkles className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h4 className="font-bold text-white uppercase tracking-wide text-sm">Ask about Shreeyansh</h4>
+                <p className="text-xs text-[#D7E2EA]/50 font-light">Pick a question below</p>
+              </div>
+            </div>
+
+            {/* Questions list */}
+            <div className="flex flex-col gap-2">
+              {qaPairs.map((pair, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setSelectedQuestion(idx)}
+                  className={`text-left text-xs p-3 rounded-xl border text-white font-medium transition-all cursor-pointer ${
+                    selectedQuestion === idx
+                      ? "border-[#B600A8] bg-[#B600A8]/10"
+                      : "border-white/5 bg-white/5 hover:bg-white/10 hover:border-white/10"
+                  }`}
+                >
+                  {pair.q}
+                </button>
+              ))}
+            </div>
+
+            {/* Response Area */}
+            {selectedQuestion !== null && (
+              <div className="bg-cyan-500/5 border border-cyan-500/20 p-3.5 rounded-2xl text-xs sm:text-sm font-light leading-relaxed text-cyan-400">
+                <p className="font-bold uppercase tracking-wider text-[10px] text-cyan-400/60 mb-1">Response:</p>
+                <TypewriterText text={qaPairs[selectedQuestion].a} />
+              </div>
+            )}
+          </div>
+
+          {/* Close Button */}
+          <button
+            onClick={() => {
+              setIsOpen(false)
+              setSelectedQuestion(null)
+            }}
+            className="w-12 h-12 rounded-full bg-white text-black hover:bg-slate-200 shadow-xl flex items-center justify-center transition-all cursor-pointer font-bold focus:outline-none"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </>
+      ) : (
+        /* Floating Action Button (FAB) */
+        <button
+          onClick={() => setIsOpen(true)}
+          className="w-14 h-14 rounded-full bg-gradient-to-tr from-[#7621B0] to-[#B600A8] hover:scale-110 active:scale-95 text-white shadow-2xl flex items-center justify-center transition-all animate-bounce relative cursor-pointer"
+          style={{ animationDuration: '3s' }}
+        >
+          <span className="absolute -inset-1 rounded-full bg-[#B600A8]/30 blur-sm -z-10" />
+          <Bot className="w-6 h-6 text-white" />
+        </button>
+      )}
+    </div>
+  )
+}
+
 export default function App() {
   const [currentView, setCurrentView] = useState("landing_page")
   const [loading, setLoading] = useState(false)
   const marqueeRef = useRef(null)
   const [marqueeOffset, setMarqueeOffset] = useState(0)
+
+  const [formData, setFormData] = useState({ name: "", email: "", message: "" })
+  const [formStatus, setFormStatus] = useState("")
+
+  const [activeAccordionIdx, setActiveAccordionIdx] = useState(null)
+  const [runTour, setRunTour] = useState(false)
+
+  const searchSectionRef = useRef(null)
+
+  useEffect(() => {
+    if (currentView !== "portfolio") {
+      setRunTour(false)
+      return
+    }
+
+    const timer = setTimeout(() => {
+      const element = document.getElementById("resume-download-btn")
+      if (!element) return
+
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) {
+            const hasSeen = localStorage.getItem("hasSeenResumeTour")
+            if (!hasSeen) {
+              setRunTour(true)
+              observer.disconnect()
+            }
+          }
+        },
+        { threshold: 0.1 }
+      );
+
+      observer.observe(element)
+    }, 500)
+
+    return () => clearTimeout(timer)
+  }, [currentView])
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target
+    setFormData((prev) => ({ ...prev, [name]: value }))
+  }
+
+  const handleFormSubmit = (e) => {
+    e.preventDefault()
+    if (!formData.name || !formData.email || !formData.message) {
+      setFormStatus("error")
+      return
+    }
+    setFormStatus("sending")
+    const mailtoLink = `mailto:shreeyanshsingh07@gmail.com?subject=Portfolio Contact from ${encodeURIComponent(formData.name)}&body=Name: ${encodeURIComponent(formData.name)}%0D%0AEmail: ${encodeURIComponent(formData.email)}%0D%0AMessage:%0D%0A${encodeURIComponent(formData.message)}`
+    window.location.href = mailtoLink
+    setFormStatus("success")
+    setFormData({ name: "", email: "", message: "" })
+    setTimeout(() => {
+      setFormStatus("")
+    }, 5000)
+  }
 
 
 
@@ -137,6 +330,45 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#0C0C0C] font-kanit text-[#D7E2EA] overflow-x-clip selection:bg-[#B600A8]/30 selection:text-white">
+
+      {/* React Joyride Onboarding */}
+      {runTour && (
+        <Joyride
+          steps={[
+            {
+              target: "#resume-download-btn",
+              content: "Click here to download Shreeyansh's resume.",
+              placement: "left",
+              disableBeacon: true,
+              skipBeacon: true,
+              disableScrolling: true,
+            }
+          ]}
+          run={runTour}
+          continuous={false}
+          showSkipButton={true}
+          showCloseButton={true}
+          locale={{ last: "Got it" }}
+          styles={{
+            options: {
+              arrowColor: "#ffffff",
+              backgroundColor: "#ffffff",
+              overlayColor: "rgba(0, 0, 0, 0.5)",
+              primaryColor: "#2563eb", // blue button
+              textColor: "#333333",
+              zIndex: 1000,
+            }
+          }}
+          callback={(data) => {
+            const { status } = data;
+            if (["finished", "skipped"].includes(status)) {
+              localStorage.setItem("hasSeenResumeTour", "true");
+              setRunTour(false);
+            }
+          }}
+          debug={true}
+        />
+      )}
 
       {/* 3D Scroll-Triggered Storytelling Scene */}
       <Scroll3DScene />
@@ -377,6 +609,161 @@ export default function App() {
                 </span>
               </FadeIn>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 3.6 QUICK SEARCH SECTION */}
+      <section id="quick-search" ref={searchSectionRef} className="relative py-20 bg-[#0C0C0C] border-b border-[#D7E2EA]/10 w-full overflow-hidden z-20">
+        <div className="max-w-5xl mx-auto px-5 w-full">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12 items-start">
+            {/* Left Column: People Also Ask Accordion */}
+            <div className="lg:col-span-7 flex flex-col gap-6">
+              <FadeIn y={30} delay={0} className="w-full bg-[#121214]/60 border border-white/5 p-6 sm:p-8 rounded-3xl backdrop-blur-md text-left select-none">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#7621B0] to-[#B600A8] flex items-center justify-center shadow-lg">
+                    <Sparkles className="w-4 h-4 text-white" />
+                  </div>
+                  <h3 className="text-xl sm:text-2xl font-bold uppercase tracking-wider text-white">People also ask</h3>
+                </div>
+                <div className="flex flex-col">
+                  <AccordionItem 
+                    question="What is Shreeyansh's education and CGPA?" 
+                    answer="B.E. in Computer Engineering from Vidyavardhini's College of Engineering and Technology (VCET), Mumbai (Aug 2023 – Present). CGPA: 8.03."
+                    isOpen={activeAccordionIdx === 0}
+                    onToggle={() => setActiveAccordionIdx(activeAccordionIdx === 0 ? null : 0)}
+                  />
+                  <AccordionItem 
+                    question="Does Shreeyansh have any professional work experience?" 
+                    answer="• Full Stack Developer Intern — ESAMYAK SOFTWARE PVT LTD (Jun 2025 – Jul 2025): Engineered robust web applications using Java, Spring Boot, React, and MongoDB, optimizing backend APIs and streamlining data workflows."
+                    isOpen={activeAccordionIdx === 1}
+                    onToggle={() => setActiveAccordionIdx(activeAccordionIdx === 1 ? null : 1)}
+                  />
+                  <AccordionItem 
+                    question="Which technical skills does Shreeyansh excel at?" 
+                    answer="• Languages/Frameworks: Java, Spring Boot, JavaScript, Node.js, React.js, Express.js, Python, C/C++&#10;• Databases: MongoDB, MySQL&#10;• Tools: Git, Docker, GitHub Actions, REST APIs, Socket.io, Cloudinary, ZegoCloud"
+                    isOpen={activeAccordionIdx === 2}
+                    onToggle={() => setActiveAccordionIdx(activeAccordionIdx === 2 ? null : 2)}
+                  />
+                  <AccordionItem 
+                    question="What are some of Shreeyansh's key projects?" 
+                    answer="• AI Wearable Pendant: An AI-powered wearable assistant capturing conversations using ESP32-C3 and INMP441 to passively capture conversations for memory recall and contextual automation.&#10;• GovGenie: An AI-driven secure government portal with Aadhaar-based facial verification (OpenCV), Socket.io real-time chat, and Dockerized microservices.&#10;• OpinionTrade: A copyrighted polling platform built using React, Node.js, Express, and MongoDB."
+                    isOpen={activeAccordionIdx === 3}
+                    onToggle={() => setActiveAccordionIdx(activeAccordionIdx === 3 ? null : 3)}
+                  />
+                  <AccordionItem 
+                    question="What achievements and hackathons has Shreeyansh won?" 
+                    answer="• Winner — HackX 2.0 (2026) SFIT, 1st Prize in FinTech & Digital Economy&#10;• Winner — PixxelHack 1.0 (2025) TCET, National-Level Webathon&#10;• Winner — IDEAVERSE 1.0 (2026) TCET, National-Level AI & ML Ideathon&#10;• Runner-up — COHERENCE (2026) GovTech Financial Intelligence Track&#10;• Winner — VNPS National-Level Project Showcase (2025, 2026)&#10;• Winner — VCET OSCILLATION Technical Competition (2025, 2026)"
+                    isOpen={activeAccordionIdx === 4}
+                    onToggle={() => setActiveAccordionIdx(activeAccordionIdx === 4 ? null : 4)}
+                  />
+                  <AccordionItem 
+                    question="What extracurricular achievements does Shreeyansh have?" 
+                    answer="Shreeyansh was the Sports Captain during school, demonstrating early leadership, and actively participates in hackathons, tech fests, and innovation challenges."
+                    isOpen={activeAccordionIdx === 5}
+                    onToggle={() => setActiveAccordionIdx(activeAccordionIdx === 5 ? null : 5)}
+                  />
+                  <AccordionItem 
+                    question="Where did Shreeyansh complete his schooling (SSC & HSC)?" 
+                    answer="He completed both his SSC (scoring 84.4%) and HSC studies from Holy Family Convent High School and Junior College."
+                    isOpen={activeAccordionIdx === 6}
+                    onToggle={() => setActiveAccordionIdx(activeAccordionIdx === 6 ? null : 6)}
+                  />
+                </div>
+              </FadeIn>
+            </div>
+
+            {/* Right Column: Google Search Style Profile Card */}
+            <div className="lg:col-span-5 flex justify-center lg:sticky lg:top-24 w-full">
+              <FadeIn x={50} delay={0.15} className="w-full max-w-md">
+                <div className="bg-[#171719]/90 border border-white/10 rounded-3xl p-6 shadow-2xl w-full text-left backdrop-blur-md select-none">
+                  {/* Avatar Image and Name info */}
+                  <div className="flex flex-col items-center text-center pb-6 border-b border-white/10">
+                    <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-[#B600A8] mb-4 shadow-[0_0_15px_rgba(182,0,168,0.3)]">
+                      <img src="/portrait_smiling.png" alt="Shreeyansh Singh" className="w-full h-full object-cover" />
+                    </div>
+                    <h3 className="text-xl font-bold text-white uppercase tracking-wide">Shreeyansh Singh</h3>
+                    <p className="text-xs text-cyan-400 font-semibold uppercase tracking-wider mt-1">Full-Stack Developer · AI Solutions</p>
+                  </div>
+                  
+                  {/* Details list */}
+                  <div className="py-5 space-y-3.5 border-b border-white/10">
+                    <div className="grid grid-cols-3 gap-2 text-sm">
+                      <span className="text-[#D7E2EA]/50 font-light">Education</span>
+                      <span className="col-span-2 text-white font-medium">B.E. Computer Engineering, VCET</span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 text-sm">
+                      <span className="text-[#D7E2EA]/50 font-light">CGPA</span>
+                      <span className="col-span-2 text-white font-medium">8.03 / 10</span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 text-sm">
+                      <span className="text-[#D7E2EA]/50 font-light">Location</span>
+                      <span className="col-span-2 text-cyan-400 font-medium">Mumbai, India</span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 text-sm">
+                      <span className="text-[#D7E2EA]/50 font-light">Experience</span>
+                      <span className="col-span-2 text-white font-medium">Full Stack Intern @ Esamyak</span>
+                    </div>
+                  </div>
+
+                  {/* Skill pills and Links */}
+                  <div className="py-5 space-y-4 border-b border-white/10">
+                    <div className="flex flex-wrap gap-2">
+                      {["Java", "Spring Boot", "React", "Node.js", "Python"].map(skill => (
+                        <span key={skill} className="px-3 py-1 rounded-full text-[11px] bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 font-medium">
+                          {skill}
+                        </span>
+                      ))}
+                    </div>
+                    <div className="flex flex-wrap gap-2 text-xs">
+                      <a href="https://linkedin.com/in/shreeyansh-singh" target="_blank" rel="noreferrer" className="px-3 py-1.5 rounded-full border border-white/10 hover:border-[#B600A8]/50 hover:bg-[#B600A8]/10 text-white transition-all cursor-pointer">
+                        LinkedIn
+                      </a>
+                      <a href="https://github.com/Shreeyansh-07" target="_blank" rel="noreferrer" className="px-3 py-1.5 rounded-full border border-white/10 hover:border-[#B600A8]/50 hover:bg-[#B600A8]/10 text-white transition-all cursor-pointer">
+                        GitHub
+                      </a>
+                      <a href="mailto:shreeyanshsingh07@gmail.com" className="px-3 py-1.5 rounded-full border border-white/10 hover:border-[#B600A8]/50 hover:bg-[#B600A8]/10 text-white transition-all cursor-pointer">
+                        Email
+                      </a>
+                      <a id="resume-download-btn" href="/Shreeyansh Singh Resume .pdf" download className="px-3 py-1.5 rounded-full border border-[#B600A8] text-white hover:bg-[#B600A8]/20 transition-all font-semibold flex items-center gap-1 cursor-pointer">
+                        Resume 📥
+                      </a>
+                    </div>
+                  </div>
+
+                  {/* People also search for */}
+                  <div className="pt-4">
+                    <span className="text-[11px] font-bold text-[#D7E2EA]/50 uppercase tracking-widest block mb-2.5">People also search for</span>
+                    <div className="flex flex-wrap gap-2">
+                      {["Education", "Experience", "Projects", "Resume"].map(item => (
+                        <button 
+                          key={item} 
+                          onClick={() => {
+                            if (item === "Resume") {
+                              const link = document.createElement("a");
+                              link.href = "/Shreeyansh Singh Resume .pdf";
+                              link.download = "Shreeyansh_Singh_Resume.pdf";
+                              link.click();
+                            } else if (item === "Projects") {
+                              scrollToSection("projects");
+                            } else if (item === "Experience") {
+                              scrollToSection("quick-search");
+                              setActiveAccordionIdx(1);
+                            } else {
+                              scrollToSection("quick-search");
+                              setActiveAccordionIdx(0);
+                            }
+                          }}
+                          className="px-3 py-1 rounded-full text-xs border border-white/15 hover:border-cyan-400/50 hover:text-cyan-400 text-[#D7E2EA] transition-all cursor-pointer"
+                        >
+                          {item}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </FadeIn>
+            </div>
           </div>
         </div>
       </section>
@@ -755,64 +1142,143 @@ export default function App() {
 
         {/* 6. CONTACT / FOOTER SECTION */}
         <section id="contact" className="relative py-24 px-4 sm:px-6 lg:px-8 border-t border-[#D7E2EA]/10 bg-gradient-to-b from-transparent to-[#0C0C0C] z-20">
-          <div className="max-w-7xl mx-auto text-center flex flex-col items-center">
+          <div className="max-w-6xl mx-auto flex flex-col items-center">
+            
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 w-full items-start mb-16">
+              
+              {/* Left Column: Info, Social Links */}
+              <div className="lg:col-span-6 flex flex-col text-left justify-center h-full">
+                <FadeIn y={30} delay={0} duration={0.8} className="mb-6">
+                  <h2 className="hero-heading font-black uppercase text-4xl sm:text-5xl md:text-6xl leading-none">
+                    Let&apos;s Build Something Great Together
+                  </h2>
+                </FadeIn>
 
-            <FadeIn y={30} delay={0} duration={0.8} className="mb-6">
-              <h2 className="hero-heading font-black uppercase text-4xl sm:text-5xl md:text-6xl">
-                Let&apos;s Build Something Great Together
-              </h2>
-            </FadeIn>
+                <FadeIn y={20} delay={0.15} duration={0.8} className="mb-8">
+                  <p className="text-[#D7E2EA]/75 text-base sm:text-lg md:text-xl leading-relaxed font-light">
+                    Whether you&apos;re looking to build a modern web application, an AI-powered product, or a scalable backend system, I&apos;d love to discuss your ideas and help turn them into reality.
+                  </p>
+                </FadeIn>
 
-            <FadeIn y={20} delay={0.15} duration={0.8} className="mb-12">
-              <p className="text-[#D7E2EA]/75 text-base sm:text-lg md:text-xl max-w-2xl mx-auto leading-relaxed font-light">
-                Whether you&apos;re looking to build a modern web application, an AI-powered product, or a scalable backend system, I&apos;d love to discuss your ideas and help turn them into reality.
-              </p>
-            </FadeIn>
+                {/* Social links */}
+                <FadeIn y={20} delay={0.3} duration={0.8} className="flex flex-wrap gap-4 sm:gap-6 mt-4">
+                  <a
+                    href="https://www.linkedin.com/in/shreeyansh-singh-858ab633b"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-2 border border-[#D7E2EA]/20 rounded-full px-5 py-2.5 backdrop-blur-md bg-white/5 hover:bg-white hover:text-black hover:border-white transition-all duration-300 font-medium text-sm sm:text-base cursor-pointer"
+                  >
+                    <Linkedin className="w-4 h-4 text-blue-400" />
+                    LinkedIn
+                  </a>
+                  <a
+                    href="https://github.com/Shreeyansh-07"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-2 border border-[#D7E2EA]/20 rounded-full px-5 py-2.5 backdrop-blur-md bg-white/5 hover:bg-white hover:text-black hover:border-white transition-all duration-300 font-medium text-sm sm:text-base cursor-pointer"
+                  >
+                    <Github className="w-4 h-4 text-slate-300" />
+                    GitHub
+                  </a>
+                  <a
+                    href="mailto:shreeyanshsingh07@gmail.com"
+                    className="flex items-center gap-2 border border-[#D7E2EA]/20 rounded-full px-5 py-2.5 backdrop-blur-md bg-white/5 hover:bg-white hover:text-black hover:border-white transition-all duration-300 font-medium text-sm sm:text-base cursor-pointer"
+                  >
+                    <Mail className="w-4 h-4 text-teal-400" />
+                    Get In Touch
+                  </a>
+                </FadeIn>
+              </div>
 
-            {/* Social links */}
-            <FadeIn y={20} delay={0.3} duration={0.8} className="flex flex-wrap justify-center gap-6 sm:gap-8 mb-16">
-              <a
-                href="https://www.linkedin.com/in/shreeyansh-singh-858ab633b"
-                target="_blank"
-                rel="noreferrer"
-                className="flex items-center gap-2 border border-[#D7E2EA]/20 rounded-full px-6 py-3 backdrop-blur-md bg-white/5 hover:bg-white hover:text-black hover:border-white transition-all duration-300 font-medium"
-              >
-                <Linkedin className="w-5 h-5 text-blue-400" />
-                LinkedIn
-              </a>
-              <a
-                href="https://github.com/Shreeyansh-07"
-                target="_blank"
-                rel="noreferrer"
-                className="flex items-center gap-2 border border-[#D7E2EA]/20 rounded-full px-6 py-3 backdrop-blur-md bg-white/5 hover:bg-white hover:text-black hover:border-white transition-all duration-300 font-medium"
-              >
-                <Github className="w-5 h-5 text-slate-300" />
-                GitHub
-              </a>
-              <a
-                href="mailto:shreeyanshsingh07@gmail.com"
-                className="flex items-center gap-2 border border-[#D7E2EA]/20 rounded-full px-6 py-3 backdrop-blur-md bg-white/5 hover:bg-white hover:text-black hover:border-white transition-all duration-300 font-medium"
-              >
-                <Mail className="w-5 h-5 text-teal-400" />
-                Get In Touch
-              </a>
-            </FadeIn>
+              {/* Right Column: Contact form */}
+              <div className="lg:col-span-6 flex justify-center w-full">
+                <FadeIn y={30} delay={0.2} className="w-full max-w-lg bg-[#121214]/80 border border-white/10 rounded-3xl p-6 sm:p-8 backdrop-blur-md shadow-[0_20px_40px_rgba(0,0,0,0.5)] text-left select-none">
+                  <h3 className="text-xl sm:text-2xl font-bold uppercase tracking-wider text-white mb-6">Send a message</h3>
+                  
+                  <form onSubmit={handleFormSubmit} className="space-y-4">
+                    <div>
+                      <label htmlFor="name" className="text-xs uppercase tracking-widest text-[#D7E2EA]/60 block mb-2 font-medium">Name</label>
+                      <input
+                        type="text"
+                        id="name"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleInputChange}
+                        placeholder="Your name"
+                        className="w-full px-4 py-3 bg-white/5 border border-white/10 text-white rounded-xl placeholder:text-[#D7E2EA]/30 focus:border-[#B600A8] focus:bg-white/10 focus:outline-none transition-all"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="email" className="text-xs uppercase tracking-widest text-[#D7E2EA]/60 block mb-2 font-medium">Email</label>
+                      <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        placeholder="you@company.com"
+                        className="w-full px-4 py-3 bg-white/5 border border-white/10 text-white rounded-xl placeholder:text-[#D7E2EA]/30 focus:border-[#B600A8] focus:bg-white/10 focus:outline-none transition-all"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="message" className="text-xs uppercase tracking-widest text-[#D7E2EA]/60 block mb-2 font-medium">Message</label>
+                      <textarea
+                        id="message"
+                        name="message"
+                        value={formData.message}
+                        onChange={handleInputChange}
+                        placeholder="Tell me about the role..."
+                        rows="4"
+                        className="w-full px-4 py-3 bg-white/5 border border-white/10 text-white rounded-xl placeholder:text-[#D7E2EA]/30 focus:border-[#B600A8] focus:bg-white/10 focus:outline-none transition-all resize-none"
+                        required
+                      />
+                    </div>
+
+                    <button
+                      type="submit"
+                      className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold uppercase tracking-wider rounded-xl transition-all shadow-lg active:scale-95 cursor-pointer text-center text-sm"
+                    >
+                      Send via Email
+                    </button>
+
+                    {formStatus === "success" && (
+                      <p className="text-xs text-green-400 font-medium text-center mt-2 animate-pulse">
+                        Success! Opening your email client to send the message.
+                      </p>
+                    )}
+                    {formStatus === "error" && (
+                      <p className="text-xs text-red-400 font-medium text-center mt-2 animate-pulse">
+                        Please fill in all fields before sending.
+                      </p>
+                    )}
+                  </form>
+                </FadeIn>
+              </div>
+
+            </div>
 
             {/* Footer Text */}
-            <div className="w-full border-t border-[#D7E2EA]/10 pt-10">
-              <blockquote className="text-[#D7E2EA]/50 italic font-mono text-xs sm:text-sm max-w-lg mx-auto mb-8">
+            <div className="w-full border-t border-[#D7E2EA]/10 pt-10 text-center">
+              <blockquote className="text-[#D7E2EA]/50 italic font-mono text-xs sm:text-sm max-w-lg mx-auto mb-8 text-center">
                 &ldquo;Building software that solves problems, scales with growth, and creates impact.&rdquo;
               </blockquote>
-              <div className="text-2xl font-bold hero-heading uppercase tracking-widest mb-4">
+              <div className="text-2xl font-bold hero-heading uppercase tracking-widest mb-4 text-center">
                 Shreeyansh Singh
               </div>
-              <p className="text-[#D7E2EA]/40 text-sm">
+              <p className="text-[#D7E2EA]/40 text-sm text-center">
                 © 2026 Shreeyansh Singh. Engineered with React, Tailwind CSS, & Framer Motion.
               </p>
             </div>
 
           </div>
         </section>
+
+        {/* Floating Chatbot */}
+        <ChatbotWidget />
 
       </div>
     </div>
