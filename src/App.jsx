@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react"
-import { motion, useInView } from "framer-motion"
-import { Github, Linkedin, Mail, ArrowUpRight, ChevronDown, Sparkles, Bot, X } from "lucide-react"
+import { motion, useInView, AnimatePresence } from "framer-motion"
+import { Github, Linkedin, Mail, ArrowUpRight, ChevronDown, Sparkles, Bot, X, Menu } from "lucide-react"
 import { Joyride } from "react-joyride"
 
 // Custom Components
@@ -226,6 +226,7 @@ export default function App() {
 
   const [activeAccordionIdx, setActiveAccordionIdx] = useState(null)
   const [runTour, setRunTour] = useState(false)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   const searchSectionRef = useRef(null)
 
@@ -383,8 +384,16 @@ export default function App() {
           delay={0}
           className="flex justify-between items-center px-6 md:px-10 pt-6 md:pt-8 w-full z-30"
         >
-          {/* Main evenly spaced navigation links */}
-          <div className="flex gap-6 sm:gap-10 md:gap-12 justify-start items-center">
+          {/* Mobile Brand Name / Logo */}
+          <div className="md:hidden flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-[#B600A8] animate-pulse" />
+            <span className="font-geist text-xs font-bold tracking-widest uppercase text-white">
+              SHREEYANSH
+            </span>
+          </div>
+
+          {/* Desktop Links (hidden on mobile) */}
+          <div className="hidden md:flex gap-6 sm:gap-10 md:gap-12 justify-start items-center">
             {["About", "Services", "Projects", "Contact"].map((link) => (
               <button
                 key={link}
@@ -398,14 +407,66 @@ export default function App() {
             ))}
           </div>
 
-          {/* Dedicated Landing Page Showcase Link */}
-          <button
-            onClick={() => triggerNavigation("landing_page")}
-            className="flex items-center gap-2 text-xs sm:text-sm font-semibold uppercase tracking-wider border border-white/20 px-4 py-2 rounded-full backdrop-blur-md bg-white/5 hover:bg-white/10 hover:border-white/40 transition-all duration-300"
-          >
-            Landing Page <ArrowUpRight className="w-3.5 h-3.5" />
-          </button>
+          {/* Mobile Hamburger Button + Desktop Landing Page Button */}
+          <div className="flex items-center gap-4">
+            {/* Desktop Only Landing Page Showcase Button */}
+            <button
+              onClick={() => triggerNavigation("landing_page")}
+              className="hidden md:flex items-center gap-2 text-xs sm:text-sm font-semibold uppercase tracking-wider border border-white/20 px-4 py-2 rounded-full backdrop-blur-md bg-white/5 hover:bg-white/10 hover:border-white/40 transition-all duration-300"
+            >
+              Landing Page <ArrowUpRight className="w-3.5 h-3.5" />
+            </button>
+
+            {/* Mobile Hamburger Icon */}
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="md:hidden flex items-center justify-center p-2 text-[#D7E2EA] hover:text-[#B600A8] transition-colors focus:outline-none z-50 cursor-pointer"
+              aria-label="Toggle Menu"
+            >
+              {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+          </div>
         </FadeIn>
+
+        {/* Mobile Menu Overlay */}
+        <AnimatePresence>
+          {isMobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+              className="fixed inset-0 bg-[#0C0C0C]/98 backdrop-blur-xl z-40 flex flex-col justify-center items-center gap-8 md:hidden"
+            >
+              <div className="flex flex-col gap-6 text-center">
+                {["About", "Services", "Projects", "Contact"].map((link) => (
+                  <button
+                    key={link}
+                    onClick={() => {
+                      setIsMobileMenuOpen(false)
+                      setTimeout(() => {
+                        scrollToSection(link.toLowerCase())
+                      }, 300)
+                    }}
+                    className="text-white font-semibold uppercase tracking-widest text-2xl hover:text-[#B600A8] transition-colors focus:outline-none"
+                  >
+                    {link}
+                  </button>
+                ))}
+                
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false)
+                    triggerNavigation("landing_page")
+                  }}
+                  className="mt-4 flex items-center justify-center gap-2 text-sm font-semibold uppercase tracking-wider border border-white/20 px-6 py-3 rounded-full bg-white/5 hover:bg-white/10 hover:border-white/40 transition-all duration-300"
+                >
+                  Landing Page <ArrowUpRight className="w-4 h-4" />
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Absolute Centered Portrait inside Magnet */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 sm:translate-y-0 sm:bottom-0 sm:top-auto z-10">
@@ -440,9 +501,9 @@ export default function App() {
         </div>
 
         {/* Bottom Bar details */}
-        <div className="flex justify-between items-end px-6 md:px-10 w-full z-20">
+        <div className="flex flex-col sm:flex-row justify-between items-center sm:items-end px-6 md:px-10 w-full z-20 gap-6 sm:gap-0">
           <FadeIn y={20} delay={0.35} duration={0.8}>
-            <p className="text-[#D7E2EA] font-light uppercase tracking-wide leading-snug text-[clamp(0.7rem,1.4vw,1.25rem)] max-w-[180px] sm:max-w-[240px] md:max-w-[280px] text-left">
+            <p className="text-[#D7E2EA] font-light uppercase tracking-wide leading-snug text-center sm:text-left text-[clamp(0.8rem,1.4vw,1.25rem)] max-w-[280px] sm:max-w-[240px] md:max-w-[280px]">
               Full Stack Developer crafting scalable web applications, AI-powered products, and secure backend systems
             </p>
           </FadeIn>
@@ -809,10 +870,10 @@ export default function App() {
                 y={30}
                 delay={index * 0.1}
                 duration={0.8}
-                className="flex items-center gap-4 sm:gap-8 md:gap-12 py-8 sm:py-10 md:py-12 border-b border-[#0C0C0C]/15"
+                className="flex flex-col sm:flex-row sm:items-center items-start gap-4 sm:gap-8 md:gap-12 py-8 sm:py-10 md:py-12 border-b border-[#0C0C0C]/15"
               >
                 {/* Number Left */}
-                <span className="font-black leading-none text-[#0C0C0C] w-[60px] sm:w-[120px] md:w-[160px] text-[clamp(3rem,10vw,140px)]">
+                <span className="font-black leading-none text-[#0C0C0C] w-auto sm:w-[120px] md:w-[160px] text-[clamp(3rem,10vw,140px)]">
                   {service.num}
                 </span>
 
@@ -901,7 +962,7 @@ export default function App() {
               return (
                 <div
                   key={project.num}
-                  className="sticky top-24 md:top-32 w-full pt-4 pb-12 select-none"
+                  className="relative md:sticky md:top-32 w-full pt-4 pb-12 select-none"
                   style={{
                     zIndex: 10 + index,
                   }}
@@ -913,9 +974,9 @@ export default function App() {
                     transition={{ duration: 0.6 }}
                     style={{
                       transformOrigin: "top center",
-                      top: `${index * 28}px`,
+                      "--stack-offset": `${index * 28}px`,
                     }}
-                    className="group relative rounded-[40px] sm:rounded-[50px] md:rounded-[60px] border-2 border-[#D7E2EA] bg-[#0C0C0C] p-4 sm:p-6 md:p-8 w-full max-w-5xl shadow-[0_30px_60px_rgba(0,0,0,0.8)]"
+                    className="project-card-inner group relative rounded-[40px] sm:rounded-[50px] md:rounded-[60px] border-2 border-[#D7E2EA] bg-[#0C0C0C] p-4 sm:p-6 md:p-8 w-full max-w-5xl shadow-[0_30px_60px_rgba(0,0,0,0.8)]"
                   >
                     {/* Top Row */}
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[#D7E2EA]/15 pb-4 mb-4 gap-4">
@@ -954,8 +1015,8 @@ export default function App() {
 
                     {/* Bottom Row: 2-Column Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-10 gap-4 sm:gap-6 mt-4">
-                      {/* Left Column (40%) */}
-                      <div className="md:col-span-4 flex flex-col gap-4">
+                      {/* Left Column (40%) - Hidden on Mobile */}
+                      <div className="hidden md:flex md:col-span-4 flex-col gap-4">
                         <img
                           src={project.col1_img1}
                           alt={`${project.name} preview 1`}
@@ -972,14 +1033,14 @@ export default function App() {
                         />
                       </div>
 
-                      {/* Right Column (60%) */}
-                      <div className="md:col-span-6">
+                      {/* Right Column (60%) - Full Width on Mobile */}
+                      <div className="col-span-1 md:col-span-6">
                         <img
                           src={project.col2_img}
                           alt={`${project.name} preview main`}
                           loading="lazy"
                           className="w-full h-full object-cover rounded-[30px] sm:rounded-[40px] md:rounded-[50px] border border-[#D7E2EA]/10 hover:border-[#D7E2EA]/30 transition-all duration-500"
-                          style={{ minHeight: "clamp(300px, 38vw, 590px)" }}
+                          style={{ minHeight: "clamp(180px, 38vw, 590px)" }}
                         />
                       </div>
                     </div>
@@ -1192,7 +1253,7 @@ export default function App() {
 
               {/* Right Column: Contact form */}
               <div className="lg:col-span-6 flex justify-center w-full">
-                <FadeIn y={30} delay={0.2} className="w-full max-w-lg bg-[#121214]/80 border border-white/10 rounded-3xl p-6 sm:p-8 backdrop-blur-md shadow-[0_20px_40px_rgba(0,0,0,0.5)] text-left select-none">
+                <FadeIn y={30} delay={0.2} className="w-full max-w-lg bg-[#121214]/80 border border-white/10 rounded-3xl p-6 sm:p-8 backdrop-blur-md shadow-[0_20px_40px_rgba(0,0,0,0.5)] text-left">
                   <h3 className="text-xl sm:text-2xl font-bold uppercase tracking-wider text-white mb-6">Send a message</h3>
                   
                   <form onSubmit={handleFormSubmit} className="space-y-4">

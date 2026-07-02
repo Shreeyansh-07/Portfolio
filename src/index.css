@@ -69,3 +69,15 @@ html {
 .will-change-transform {
   will-change: transform;
 }
+
+/* Responsive project card inner stacking top offset */
+@media (max-width: 767px) {
+  .project-card-inner {
+    top: 0px !important;
+  }
+}
+@media (min-width: 768px) {
+  .project-card-inner {
+    top: var(--stack-offset) !important;
+  }
+}

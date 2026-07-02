@@ -49,7 +49,7 @@ export default function FoldcraftPage({ onNavigate }) {
   }
 
   return (
-    <div className="relative h-screen w-full overflow-hidden bg-black font-geist text-white">
+    <div className="relative min-h-screen md:h-screen w-full overflow-x-hidden overflow-y-auto md:overflow-hidden bg-black font-geist text-white flex flex-col justify-center">
       {/* React Joyride Onboarding */}
       {runTour && (
         <Joyride
@@ -71,8 +71,7 @@ export default function FoldcraftPage({ onNavigate }) {
         muted
         loop
         playsInline
-        className="absolute top-0 left-0 w-[130%] md:w-[140%] max-w-none h-full object-cover select-none pointer-events-none -translate-x-[12%] md:-translate-x-[20%]"
-        style={{ objectPosition: "center center" }}
+        className="absolute top-0 left-0 w-full md:w-[140%] md:max-w-none h-full object-cover select-none pointer-events-none object-right md:object-center md:-translate-x-[20%]"
       >
         <source
           src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260622_204221_5339e40b-e73d-4ab0-9c65-79c18c66fd50.mp4"
@@ -81,14 +80,14 @@ export default function FoldcraftPage({ onNavigate }) {
       </video>
 
       {/* Dark Overlay for Video Readability */}
-      <div className="absolute inset-0 bg-black/40 pointer-events-none" />
+      <div className="absolute inset-0 bg-black/60 md:bg-black/40 pointer-events-none" />
 
       {/* Brand Logo / Creator Name */}
-      <div className="absolute top-6 left-6 md:top-8 md:left-12 z-20 select-none animate-[fadeSlideUp_0.8s_ease_0.2s_both]">
+      <div className="absolute top-4 left-4 sm:top-6 sm:left-6 md:top-8 md:left-12 z-20 select-none animate-[fadeSlideUp_0.8s_ease_0.2s_both]">
         <div className="flex items-center gap-2">
           <span className="h-2 w-2 rounded-full bg-[#B600A8] animate-pulse" />
-          <span className="font-geist text-xs md:text-sm font-bold tracking-widest uppercase text-white">
-            SHREEYANSH SINGH
+          <span className="font-geist text-[10px] sm:text-xs md:text-sm font-bold tracking-widest uppercase text-white">
+            SHREEYANSH
           </span>
           <span className="hidden sm:inline text-[10px] md:text-xs font-semibold tracking-wider text-white/40 uppercase">
             / Portfolio
@@ -100,13 +99,13 @@ export default function FoldcraftPage({ onNavigate }) {
       <button
         id="see-portfolio-btn"
         onClick={() => onNavigate(null)}
-        className="see-portfolio-btn absolute top-6 right-6 md:top-8 md:right-12 z-20 rounded-full border border-white/20 bg-white/5 hover:bg-white hover:text-black hover:border-white px-5 py-2.5 text-xs sm:text-sm font-semibold uppercase tracking-wider text-white backdrop-blur-md transition-all duration-300 animate-[fadeSlideUp_0.8s_ease_0.2s_both]"
+        className="see-portfolio-btn absolute top-4 right-4 sm:top-6 sm:right-6 md:top-8 md:right-12 z-20 rounded-full border border-white/20 bg-white/5 hover:bg-white hover:text-black hover:border-white px-4 py-2 sm:px-5 sm:py-2.5 text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-white backdrop-blur-md transition-all duration-300 animate-[fadeSlideUp_0.8s_ease_0.2s_both]"
       >
         See Portfolio &rarr;
       </button>
 
       {/* Hero Content (Centered vertically to eliminate the large gap) */}
-      <div className="relative z-10 flex flex-col justify-center h-full px-6 py-12 md:px-12 lg:px-16 gap-6 md:gap-10">
+      <div className="relative z-10 flex flex-col justify-center min-h-[calc(100vh-80px)] md:h-full px-6 py-20 sm:py-12 md:px-12 lg:px-16 gap-6 md:gap-10">
         {/* Top Section */}
         <div className="max-w-4xl">
           <div className="inline-block text-xs sm:text-sm text-white/90 tracking-wide uppercase px-3 py-1.5 rounded-full border border-white/10 bg-white/5 backdrop-blur-sm mb-4 sm:mb-6 animate-[fadeSlideUp_0.8s_ease_0.2s_both]">
