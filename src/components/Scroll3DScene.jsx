@@ -92,20 +92,72 @@ function Model({ progressRef }) {
   }
 
   // Get interpolated values based on current scroll progress
-  const getInterpolatedValues = (p) => {
+  const getInterpolatedValues = (p, isMobile) => {
     const progress = Math.max(0, Math.min(1, p))
+
+    const activeKeyframes = isMobile ? [
+      {
+        progress: 0.0,
+        position: [0, 2.0, -1],
+        rotation: [0, 0, 0],
+        scale: 0.6,
+        opacity: 0
+      },
+      {
+        progress: 0.15,
+        position: [0, 1.2, 0.2],
+        rotation: [0.1, 0.9, 0.1],
+        scale: 0.8,
+        opacity: 1
+      },
+      {
+        progress: 0.4,
+        position: [0, 0.6, 0.2],
+        rotation: [0.1, 1.8, 0.1],
+        scale: 0.8,
+        opacity: 1
+      },
+      {
+        progress: 0.65,
+        position: [0, 0.0, 0.2],
+        rotation: [0.2, 3.14, 0.2],
+        scale: 0.9,
+        opacity: 1
+      },
+      {
+        progress: 0.8,
+        position: [0, -0.6, 0.2],
+        rotation: [0.2, 4.5, 0.2],
+        scale: 0.9,
+        opacity: 1
+      },
+      {
+        progress: 0.9,
+        position: [0, -1.2, 0.2],
+        rotation: [0.1, 5.4, 0.1],
+        scale: 1.0,
+        opacity: 1
+      },
+      {
+        progress: 1.0,
+        position: [0, -1.8, 0.4],
+        rotation: [0.2, 6.28, 0.2],
+        scale: 1.1,
+        opacity: 1
+      }
+    ] : keyframes;
 
     // Find the current keyframe interval
     let startIndex = 0
-    for (let i = 0; i < keyframes.length - 1; i++) {
-      if (progress >= keyframes[i].progress && progress <= keyframes[i + 1].progress) {
+    for (let i = 0; i < activeKeyframes.length - 1; i++) {
+      if (progress >= activeKeyframes[i].progress && progress <= activeKeyframes[i + 1].progress) {
         startIndex = i
         break
       }
     }
 
-    const start = keyframes[startIndex]
-    const end = keyframes[startIndex + 1]
+    const start = activeKeyframes[startIndex]
+    const end = activeKeyframes[startIndex + 1]
 
     // Local interpolation factor
     const range = end.progress - start.progress
@@ -144,7 +196,8 @@ function Model({ progressRef }) {
     // Smooth scroll interpolation (lerp) for momentum / damping
     smoothedScroll.current += (rawScroll - smoothedScroll.current) * 0.05
 
-    const { position, rotation, scale, opacity } = getInterpolatedValues(smoothedScroll.current)
+    const isMobile = window.innerWidth < 768
+    const { position, rotation, scale, opacity } = getInterpolatedValues(smoothedScroll.current, isMobile)
 
     // Apply floating (subtle sinusoidal vertical/horizontal oscillations) and majestic rotation
     const time = state.clock.getElapsedTime()
@@ -233,7 +286,7 @@ export default function Scroll3DScene() {
   return (
     <div 
       style={{ zIndex: 10, visibility: visibilityStyle }}
-      className="fixed inset-0 w-full h-full pointer-events-none hidden md:block"
+      className="fixed inset-0 w-full h-full pointer-events-none block"
     >
       <Canvas
         camera={{ position: [0, 0, 5], fov: 45 }}

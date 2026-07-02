@@ -477,7 +477,7 @@ export default function App() {
               activeTransition="transform 0.3s ease-out"
               inactiveTransition="transform 0.6s ease-in-out"
             >
-              <div className="relative w-[280px] sm:w-[360px] md:w-[440px] lg:w-[520px] select-none pointer-events-auto">
+              <div className="relative w-[200px] sm:w-[360px] md:w-[440px] lg:w-[520px] select-none pointer-events-auto">
                 {/* Backlighting glow */}
                 <div className="absolute -inset-4 bg-gradient-to-tr from-[#7621B0] to-[#B600A8] opacity-35 rounded-full blur-[80px] -z-10 animate-pulse" />
                 <img
@@ -962,7 +962,7 @@ export default function App() {
               return (
                 <div
                   key={project.num}
-                  className="relative md:sticky md:top-32 w-full pt-4 pb-12 select-none"
+                  className="sticky top-20 sm:top-24 md:top-32 w-full pt-4 pb-12 select-none"
                   style={{
                     zIndex: 10 + index,
                   }}
