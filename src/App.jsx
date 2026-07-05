@@ -492,7 +492,7 @@ export default function App() {
         </div>
 
         {/* Hero Heading */}
-        <div className="absolute top-[20%] left-0 w-full text-center overflow-hidden z-20 select-none pointer-events-none sm:relative sm:top-auto sm:mt-4 md:-mt-5">
+        <div className="w-full text-center overflow-hidden z-20 mt-6 sm:mt-4 md:-mt-5 select-none pointer-events-none">
           <FadeIn y={40} delay={0.15} duration={0.9} as="div">
             <h1 className="hero-heading font-black uppercase tracking-tight leading-none whitespace-nowrap text-[9vw] sm:text-[9.2vw] md:text-[9.5vw] lg:text-[9.8vw]">
               Hi, i&apos;m shreeyansh
