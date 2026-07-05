@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <defs>
+    <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7621B0" />
+      <stop offset="50%" stop-color="#B600A8" />
+      <stop offset="100%" stop-color="#06b6d4" />
+    </linearGradient>
+  </defs>
+  <!-- Sleek Hexagonal bracket tech "S" logo -->
+  <path d="M 72 32 L 50 18 L 28 32 L 28 48 L 50 62" stroke="url(#g1)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 28 68 L 50 82 L 72 68 L 72 52 L 50 38" stroke="url(#g1)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
