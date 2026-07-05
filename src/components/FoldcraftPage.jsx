@@ -71,7 +71,7 @@ export default function FoldcraftPage({ onNavigate }) {
         muted
         loop
         playsInline
-        className="absolute top-0 left-0 w-full md:w-[140%] md:max-w-none h-full object-cover select-none pointer-events-none object-right md:object-center md:-translate-x-[20%]"
+        className="absolute top-0 left-0 w-full h-full object-cover select-none pointer-events-none object-center md:w-[140%] md:max-w-none md:object-center md:-translate-x-[20%]"
       >
         <source
           src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260622_204221_5339e40b-e73d-4ab0-9c65-79c18c66fd50.mp4"
