@@ -382,7 +382,7 @@ export default function App() {
           as="nav"
           y={-20}
           delay={0}
-          className="flex justify-between items-center px-6 md:px-10 pt-6 md:pt-8 w-full z-30"
+          className="relative flex justify-between items-center px-6 md:px-10 pt-6 md:pt-8 w-full z-50"
         >
           {/* Mobile Brand Name / Logo */}
           <div className="md:hidden flex items-center gap-2">
@@ -420,7 +420,7 @@ export default function App() {
             {/* Mobile Hamburger Icon */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="md:hidden flex items-center justify-center p-2 text-[#D7E2EA] hover:text-[#B600A8] transition-colors focus:outline-none z-50 cursor-pointer"
+              className="relative md:hidden flex items-center justify-center p-2 text-[#D7E2EA] hover:text-[#B600A8] transition-colors focus:outline-none z-50 cursor-pointer"
               aria-label="Toggle Menu"
             >
               {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -492,7 +492,7 @@ export default function App() {
         </div>
 
         {/* Hero Heading */}
-        <div className="w-full text-center overflow-hidden z-20 mt-6 sm:mt-4 md:-mt-5 select-none pointer-events-none">
+        <div className="relative w-full text-center overflow-hidden z-20 mt-6 sm:mt-4 md:-mt-5 select-none pointer-events-none">
           <FadeIn y={40} delay={0.15} duration={0.9} as="div">
             <h1 className="hero-heading font-black uppercase tracking-tight leading-none whitespace-nowrap text-[9vw] sm:text-[9.2vw] md:text-[9.5vw] lg:text-[9.8vw]">
               Hi, i&apos;m shreeyansh
