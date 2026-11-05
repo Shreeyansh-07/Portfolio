@@ -2,8 +2,7 @@ import { useEffect, useRef, useState } from "react"
 
 const clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value))
 const ease = value => value * value * (3 - 2 * value)
-const words = ["starlight", "gravity", "orbit", "infinity"]
-
+const heroWords = ["starlight", "gravity", "orbit", "infinity"]
 const aboutItems = [
   {
     n: "01",
@@ -24,8 +23,8 @@ const aboutItems = [
 ]
 
 const highlights = [
-  { value: 6, suffix: "+", label: "Hackathon + paper presentation wins" },
-  { value: 150, suffix: "+", label: "LeetCode problems solved" },
+  { value: 7, suffix: "+", label: "Hackathon + paper presentation wins" },
+  { value: 250, suffix: "+", label: "LeetCode problems solved" },
   { value: 10, suffix: "+", label: "Major projects built" },
   { value: 3, suffix: "+", label: "Years of programming experience" },
   { value: 100, suffix: "%", label: "Passion for learning" },
@@ -43,15 +42,15 @@ const services = [
   {
     n: "02",
     cat: "SY-03.2",
-    title: "Cloud & System Design",
-    desc: "Architecting secure databases, Dockerized deployments, CI/CD pipelines, and scalable cloud infrastructure for production-ready applications.",
+    title: "Java Programming / Problem Solving",
+    desc: "Writing robust Java solutions for data structures, algorithms, object-oriented design, and competitive programming challenges.",
     colors: ["#3c3f80", "#17183a", "#7d8ae0"],
-    icon: "cloud",
+    icon: "code",
   },
   {
     n: "03",
     cat: "SY-03.3",
-    title: "Frontend Engineering",
+    title: "Frontend Development",
     desc: "Building responsive, visually engaging, and accessible web applications with modern UI technologies, smooth interactions, and optimized performance.",
     colors: ["#723430", "#2b1214", "#e07a62"],
     icon: "screen",
@@ -124,7 +123,7 @@ const projects = [
     ring: "BE-3 MAJOR PROJECT",
     quotes: [["Highlight", "Monocular 3D reconstruction"], ["Recognition", "BE Major Project 2026-27"]],
     description: "A monocular computer vision system reconstructing the 3D trajectory of a cricket ball from a single camera using YOLOv8 detection, LSTM temporal tracking, physics-constrained optimization, and stump-based geometric calibration — enabling LBW analysis without Hawk-Eye infrastructure.",
-    images: [],
+    images: ["/lstm-detection.svg", "/lstm-trajectory.svg", "/lstm-reconstruction.svg"],
     tags: ["Detect", "Track", "Reconstruct", "Analyse"],
   },
 ]
@@ -159,11 +158,11 @@ function Spaceship({ className = "" }) {
   </g>
 }
 
-// ─── Turntable Canvas (V3-matching: dawn sunrise intro + 3D stars) ─────────────
-function TurntableCanvas({ progress = 0, dark = false, playing = true, onToggle, className = "", introActive = false }) {
+// ─── Turntable Canvas ─────────────────────────────────────────────────────────
+function TurntableCanvas({ progress = 0, dark = false, playing = true, onToggle, className = "" }) {
   const canvasRef = useRef(null)
-  const values = useRef({ progress, dark, playing, onToggle, introActive })
-  values.current = { progress, dark, playing, onToggle, introActive }
+  const values = useRef({ progress, dark, playing, onToggle })
+  values.current = { progress, dark, playing, onToggle }
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -175,43 +174,25 @@ function TurntableCanvas({ progress = 0, dark = false, playing = true, onToggle,
     }))
     let raf
     let spin = 0
-    let theme = values.current.dark ? 0 : 1
+    let theme = 0
     let warp = 0
+    let recordPulse = 0
     let last = 0
-    // Intro state
-    let introT0 = null
-    let introMix = 0   // 0=night, 1=day
-    let deckAlpha = 0  // turntable deck fade-in
-    let starAlpha = 0  // stars fade-in
+    const rings = []
+    let previousPlaying = false
+    let introStart = null
+    let introDone = false
+    let starAlpha = 0
+    let deckAlpha = 0
+    let introTheme = 0
+    let sequenceStart = null
+    let lastSequence = -1
+    let armAngle = Math.PI / 2 - .05
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches
     const mix = (a, b, t) => a.map((value, index) => Math.round(value + (b[index] - value) * t))
-    const sm = v => v * v * (3 - 2 * v)
-    const cl = v => Math.max(0, Math.min(1, v))
     const rounded = (x, y, w, h, r) => {
       ctx.beginPath()
       ctx.roundRect(x, y, w, h, r)
-    }
-
-    // Draw dawn/sunrise glow matching V3's drawDawn
-    const drawDawn = (w, h, p) => {
-      const b = Math.sin(Math.PI * p)
-      if (b < 0.01) return
-      const cx = w * 0.5, cy = h * (1.2 - 0.5 * p), r = Math.max(w, h) * (0.55 + 0.45 * p)
-      const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, r)
-      g.addColorStop(0, `rgba(255,214,150,${0.78 * b})`)
-      g.addColorStop(0.35, `rgba(244,150,96,${0.4 * b})`)
-      g.addColorStop(0.7, `rgba(122,84,150,${0.16 * b})`)
-      g.addColorStop(1, "rgba(122,84,150,0)")
-      ctx.fillStyle = g
-      ctx.fillRect(0, 0, w, h)
-      // Horizon line
-      const hy = h * (1 - 0.1 * p)
-      const lg = ctx.createLinearGradient(0, 0, w, 0)
-      lg.addColorStop(0, "rgba(255,226,180,0)")
-      lg.addColorStop(0.5, `rgba(255,226,180,${0.9 * b})`)
-      lg.addColorStop(1, "rgba(255,226,180,0)")
-      ctx.fillStyle = lg
-      ctx.fillRect(0, hy, w, 1.2)
     }
 
     const drawRecord = (cx, cy, radius, scale, light, alpha = 1) => {
@@ -259,7 +240,7 @@ function TurntableCanvas({ progress = 0, dark = false, playing = true, onToggle,
       ctx.textAlign = "center"
       ctx.textBaseline = "middle"
       ctx.font = `italic ${Math.max(10, label * .34)}px 'Instrument Serif', serif`
-      ctx.fillText("S/Y", 0, label * .3)
+      ctx.fillText("S/S", 0, label * .3)
       ctx.font = `500 ${Math.max(6, label * .105)}px 'IBM Plex Mono', monospace`
       const text = "SHREEYANSH · SIDE A · 33⅓ RPM · "
       for (let i = 0; i < text.length; i++) {
@@ -292,54 +273,99 @@ function TurntableCanvas({ progress = 0, dark = false, playing = true, onToggle,
       }
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
       const current = values.current
-      const isIntro = current.introActive
-
-      // ── Intro animation step ──
-      if (isIntro) {
-        if (introT0 === null) introT0 = time
-        const e = (time - introT0) / 1000
-        const io = v => v < 0.5 ? 4 * v * v * v : 1 - Math.pow(-2 * v + 2, 3) / 2
-        starAlpha = io(cl(e / 1.0))
-        deckAlpha = io(cl((e - 0.3) / 0.8))
-        // Sunrise: starts at 1.2s, peaks around 2.9s
-        introMix = io(cl((e - 1.2) / 1.7))
-        theme += (introMix - theme) * 0.08
-      } else {
-        // After intro: smoothly target actual dark prop
-        introT0 = null
-        starAlpha = 1
-        deckAlpha = 1
-        theme += ((current.dark ? 0 : 1) - theme) * .045
+      if (introStart === null) introStart = time
+      const introElapsed = (time - introStart) / 1000
+      const introEase = value => value < .5 ? 4 * value ** 3 : 1 - Math.pow(-2 * value + 2, 3) / 2
+      const introProgress = value => Math.max(0, Math.min(1, value))
+      if (!introDone) {
+        starAlpha = introEase(introProgress(introElapsed / 1))
+        deckAlpha = introEase(introProgress((introElapsed - .3) / .8))
+        if (introElapsed >= 1.5 && rings.length === 0) {
+          for (let i = 0; i < 3; i++) rings.push({ startedAt: time + i * 260 })
+        }
+        introTheme = introEase(introProgress((introElapsed - 1.2) / 1.7))
+        if (introElapsed >= 4) {
+          introDone = true
+          starAlpha = 1
+          deckAlpha = 1
+          introTheme = 1
+          sequenceStart = time
+        }
       }
+      if (introDone && !reduce && sequenceStart !== null) {
+        const sequence = Math.floor((time - sequenceStart) / 11200)
+        if (sequence > lastSequence) {
+          warp = 1
+          recordPulse = 1
+          lastSequence = sequence
+        }
+      }
+      theme += ((introDone ? (current.dark ? 0 : 1) : introTheme) - theme) * .045
 
       const p = current.progress
+      const playing = introDone ? current.playing : introElapsed >= .75
       const zoom = ease(clamp((p - .07) / .84))
       const bg = mix([3, 3, 4], [243, 238, 228], theme)
       const ink = mix([236, 235, 230], [31, 28, 24], theme)
+      const accent = mix([255, 206, 140], [196, 112, 40], theme)
 
       ctx.fillStyle = `rgb(${bg})`
       ctx.fillRect(0, 0, w, h)
-
-      // Dawn sunrise overlay during intro
-      if (isIntro && introMix > 0) {
-        drawDawn(w, h, introMix)
+      if (!introDone && introTheme > 0) {
+        const dawn = Math.sin(Math.PI * introTheme)
+        const dawnGradient = ctx.createRadialGradient(w * .5, h * (1.2 - .5 * introTheme), 0, w * .5, h * (1.2 - .5 * introTheme), Math.max(w, h) * (.55 + .45 * introTheme))
+        dawnGradient.addColorStop(0, `rgba(255,214,150,${.78 * dawn})`)
+        dawnGradient.addColorStop(.35, `rgba(244,150,96,${.4 * dawn})`)
+        dawnGradient.addColorStop(.7, `rgba(122,84,150,${.16 * dawn})`)
+        dawnGradient.addColorStop(1, "rgba(122,84,150,0)")
+        ctx.fillStyle = dawnGradient
+        ctx.fillRect(0, 0, w, h)
       }
 
-      warp *= .96
-      // Stars with intro fade-in alpha
-      const sA = isIntro ? starAlpha : 1
-      for (const star of stars) {
-        const alpha = (.25 + .55 * Math.sin(time * .0015 + star.phase) ** 2) * (1 - zoom * .65) * sA
-        const drift = reduce ? 0 : (time * .000004 * star.depth + warp * .02) % 1
-        const x = ((star.x + drift) % 1) * w
-        const y = star.y * h
-        ctx.fillStyle = `rgba(${ink},${alpha})`
-        ctx.beginPath()
-        ctx.arc(x, y, star.r * (1 + warp * 3), 0, Math.PI * 2)
-        ctx.fill()
-      }
-
+      warp *= .965
+      recordPulse *= .91
       const wide = w > 860
+      const burstCenterX = wide ? w * .68 : w / 2
+      const burstCenterY = wide ? h * .5 : h * .25
+      for (const star of stars) {
+        const alpha = (.25 + .55 * Math.sin(time * .0015 + star.phase) ** 2) * (1 - zoom * .65) * starAlpha
+        const drift = reduce ? 0 : (time * .000004 * star.depth) % 1
+        const baseX = ((star.x + drift) % 1) * w
+        const baseY = star.y * h
+        const directionX = baseX - burstCenterX
+        const directionY = baseY - burstCenterY
+        const distance = Math.hypot(directionX, directionY) || 1
+        const burstDistance = warp * (90 + 450 * star.depth)
+        const x = baseX + directionX / distance * burstDistance
+        const y = baseY + directionY / distance * burstDistance
+        const radius = star.r * (1 + warp * 1.8)
+        ctx.fillStyle = `rgba(${ink},${alpha})`
+        if (warp > .025 && !reduce) {
+          const burstAlpha = alpha * .52 * Math.min(1, warp * 1.8)
+          ctx.globalAlpha = burstAlpha
+          ctx.strokeStyle = `rgba(${ink},${.62 * Math.min(1, warp * 1.8)})`
+          ctx.lineWidth = Math.max(.45, radius * .42)
+          ctx.beginPath()
+          ctx.moveTo(baseX, baseY)
+          ctx.lineTo(x, y)
+          ctx.stroke()
+          ctx.globalAlpha = burstAlpha * .28
+          ctx.lineWidth = Math.max(.35, radius * .25)
+          ctx.beginPath()
+          ctx.moveTo(
+            baseX - directionX / distance * burstDistance * .18,
+            baseY - directionY / distance * burstDistance * .18
+          )
+          ctx.lineTo(x - directionX / distance * burstDistance * .12, y - directionY / distance * burstDistance * .12)
+          ctx.stroke()
+          ctx.globalAlpha = 1
+        } else {
+          ctx.beginPath()
+          ctx.arc(x, y, radius, 0, Math.PI * 2)
+          ctx.fill()
+        }
+      }
+
       const size = wide ? Math.min(w * .36, h * .64) : Math.min(w * .72, h * .32)
       const boxH = size * .78
       const x = wide ? w * .72 - size / 2 : (w - size) / 2
@@ -350,13 +376,10 @@ function TurntableCanvas({ progress = 0, dark = false, playing = true, onToggle,
       const px = x + size * .86
       const py = y + size * .13
 
-      // Plinth: fade with intro deckAlpha
-      const plinthAlpha = (isIntro ? deckAlpha : 1) * (1 - clamp(p / .09))
+      const plinthAlpha = deckAlpha * (1 - clamp(p / .09))
       if (plinthAlpha > .01) {
         ctx.save()
         ctx.globalAlpha = plinthAlpha
-        // Slight slide-in during intro
-        if (isIntro) ctx.translate(0, (1 - deckAlpha) * 24)
         ctx.shadowColor = "rgba(0,0,0,.35)"
         ctx.shadowBlur = size * .08
         ctx.shadowOffsetY = size * .03
@@ -375,7 +398,7 @@ function TurntableCanvas({ progress = 0, dark = false, playing = true, onToggle,
           ctx.fillStyle = "rgba(255,255,255,.35)"
           ctx.fillRect(rx + Math.cos(a) * radius * 1.035 - 1, ry + Math.sin(a) * radius * 1.035 - 1, 2, 2)
         }
-        ctx.fillStyle = current.playing ? "#f0c27a" : `rgba(${ink},.25)`
+        ctx.fillStyle = playing ? "#f0c27a" : `rgba(${ink},.25)`
         ctx.beginPath()
         ctx.arc(x + size * .06, y + boxH - size * .06, size * .009 + 1.5, 0, Math.PI * 2)
         ctx.fill()
@@ -383,11 +406,25 @@ function TurntableCanvas({ progress = 0, dark = false, playing = true, onToggle,
         ctx.font = `${Math.max(8, size * .022)}px 'IBM Plex Mono', monospace`
         ctx.textAlign = "left"
         ctx.textBaseline = "middle"
-        ctx.fillText(current.playing ? "33 RPM · PLAYING" : "33 RPM · STOPPED", x + size * .09, y + boxH - size * .06)
-        const target = current.playing ? Math.atan2(ry - radius * .62 - py, rx + radius * .52 - px) : Math.PI / 2 - .05
+        ctx.fillText(playing ? "33 RPM · PLAYING" : "33 RPM · STOPPED", x + size * .09, y + boxH - size * .06)
+        ctx.restore()
+      }
+
+      if (!reduce && playing) spin += .034
+
+      const endScale = Math.hypot(w, h) / Math.max(1, radius * .5)
+      const scale = Math.pow(endScale, zoom)
+      const cx = rx + (w / 2 - rx) * zoom
+      const cy = ry + (h / 2 - ry) * zoom
+      const recordAlpha = 1 - clamp((p - .94) / .06)
+      drawRecord(cx, cy, radius * scale * (1 + recordPulse * .018), scale, theme, recordAlpha)
+      if (plinthAlpha > .01) {
+        const target = playing ? Math.atan2(ry - radius * .62 - py, rx + radius * .52 - px) : Math.PI / 2 - .05
+        armAngle += (target - armAngle) * .04
         const armLength = Math.hypot(rx + radius * .52 - px, ry - radius * .62 - py)
-        const ex = px + Math.cos(target) * armLength
-        const ey = py + Math.sin(target) * armLength
+        const ex = px + Math.cos(armAngle) * armLength
+        const ey = py + Math.sin(armAngle) * armLength
+        ctx.save()
         ctx.fillStyle = theme > .5 ? "#c4c0b8" : "#46444a"
         ctx.beginPath()
         ctx.arc(px, py, size * .055, 0, Math.PI * 2)
@@ -396,30 +433,51 @@ function TurntableCanvas({ progress = 0, dark = false, playing = true, onToggle,
         ctx.lineWidth = Math.max(2.5, size * .012)
         ctx.lineCap = "round"
         ctx.beginPath()
-        ctx.moveTo(px - Math.cos(target) * size * .09, py - Math.sin(target) * size * .09)
+        ctx.moveTo(px - Math.cos(armAngle) * size * .09, py - Math.sin(armAngle) * size * .09)
         ctx.lineTo(ex, ey)
         ctx.stroke()
-        ctx.save()
         ctx.translate(ex, ey)
-        ctx.rotate(target + .5)
+        ctx.rotate(armAngle + .5)
         ctx.fillRect(-size * .012, -size * .02, size * .07, size * .04)
-        ctx.restore()
         ctx.restore()
       }
 
-      if (!reduce && current.playing) spin += .022
+      if (playing && !previousPlaying && introDone) {
+        for (let i = 0; i < 3; i++) rings.push({ startedAt: time + i * 260 })
+      }
+      previousPlaying = playing
+      for (let i = rings.length - 1; i >= 0; i--) {
+        const ring = rings[i]
+        const age = (time - ring.startedAt) / 1600
+        if (age >= 1) {
+          rings.splice(i, 1)
+          continue
+        }
+        if (age < 0) continue
+        const eased = 1 - Math.pow(1 - age, 3)
+        ctx.strokeStyle = `rgba(${accent},${.55 * (1 - age)})`
+        ctx.lineWidth = 1.2
+        ctx.beginPath()
+        ctx.arc(cx, cy, radius * (1.08 + eased * 1.4), 0, Math.PI * 2)
+        ctx.stroke()
+      }
 
-      const endScale = Math.hypot(w, h) / Math.max(1, radius * .5)
-      const scale = Math.pow(endScale, zoom)
-      const cx = rx + (w / 2 - rx) * zoom
-      const cy = ry + (h / 2 - ry) * zoom
-      // Record fade-in during intro
-      const recordAlpha = (isIntro ? Math.max(deckAlpha, 0.1) : 1) * (1 - clamp((p - .94) / .06))
-      drawRecord(cx, cy, radius * scale, scale, theme, recordAlpha)
-
-      if (p > .78) {
-        ctx.fillStyle = `rgba(11,11,13,${clamp((p - .78) / .2)})`
+      if (p > .82) {
+        const blackAlpha = clamp((p - .82) / .14)
+        ctx.fillStyle = `rgba(11,11,13,${blackAlpha})`
         ctx.fillRect(0, 0, w, h)
+        const nearX = Math.max(0, Math.max(-cx, cx - w))
+        const nearY = Math.max(0, Math.max(-cy, cy - h))
+        const near = Math.hypot(nearX, nearY)
+        const far = Math.hypot(Math.max(Math.abs(cx), Math.abs(cx - w)), Math.max(Math.abs(cy), Math.abs(cy - h)))
+        const grooveStep = Math.max(2, 2.2 * scale)
+        ctx.strokeStyle = `rgba(236,235,230,${.055 * blackAlpha})`
+        ctx.lineWidth = 1.5
+        for (let r = radius * .38 + Math.max(0, Math.ceil((near - radius * .38) / grooveStep)) * grooveStep; r <= far; r += grooveStep) {
+          ctx.beginPath()
+          ctx.arc(cx, cy, r, 0, Math.PI * 2)
+          ctx.stroke()
+        }
       }
     }
     const pointer = event => {
@@ -434,8 +492,9 @@ function TurntableCanvas({ progress = 0, dark = false, playing = true, onToggle,
       const y = wide ? rect.height * .5 - boxH / 2 : rect.height * .11
       const lx = event.clientX - rect.left
       const ly = event.clientY - rect.top
+      warp = 1
+      if (!reduce) recordPulse = 1
       if (lx > x && lx < x + size && ly > y && ly < y + boxH) current.onToggle?.()
-      else warp = 1
     }
     canvas.addEventListener("pointerdown", pointer)
     raf = requestAnimationFrame(draw)
@@ -685,6 +744,12 @@ function FlightPath({ trackRef, stageRef, h2Ref, stopsRef }) {
 
       if (pA < 1) {
         // Phase A — ship travels path A, writing the h2 title
+        ghostARef.current?.style.setProperty("opacity", "1")
+        glowARef.current?.style.setProperty("opacity", "1")
+        coreARef.current?.style.setProperty("opacity", "1")
+        ghostBRef.current?.style.setProperty("opacity", "0")
+        glowBRef.current?.style.setProperty("opacity", "0")
+        coreBRef.current?.style.setProperty("opacity", "0")
         const fi  = pA * A.n
         const p   = atPath(A, fi)
         const stR = stage.getBoundingClientRect()
@@ -696,15 +761,23 @@ function FlightPath({ trackRef, stageRef, h2Ref, stopsRef }) {
         h2El.style.clipPath = `inset(-30% ${((1 - rv) * 100).toFixed(2)}% -40% -4%)`
         const subEl = h2El.nextElementSibling
         if (subEl) subEl.style.opacity = String(cl((rv - 0.85) / 0.15))
-        call = rv < 0.999 ? "SY-1 · Writing the title" : "SY-1 · Plotting the course"
+        call = rv < 0.999 ? "SS-1 · Writing the title" : "SS-1 · Plotting the course"
       } else {
         // Phase B — ship travels path B through each about-stop card
+        ghostARef.current?.style.setProperty("opacity", "0")
+        glowARef.current?.style.setProperty("opacity", "0")
+        coreARef.current?.style.setProperty("opacity", "0")
+        ghostBRef.current?.style.setProperty("opacity", "1")
+        glowBRef.current?.style.setProperty("opacity", "1")
+        coreBRef.current?.style.setProperty("opacity", "1")
         fracA = 1
         h2El.style.clipPath = "none"
         const subEl = h2El.nextElementSibling
         if (subEl) subEl.style.opacity = "1"
         const svgB  = svgBRef.current
         if (!svgB) return
+        const stopsR = stopsEl.getBoundingClientRect()
+        svgB.style.top = `${stopsR.top - B.off}px`
         const bR = svgB.getBoundingClientRect()
         const ty = d.anchor - bR.top   // y within svgB that corresponds to the viewport anchor row
         let lo = 0, hi = B.n
@@ -725,7 +798,7 @@ function FlightPath({ trackRef, stageRef, h2Ref, stopsRef }) {
         const next = active + 1
         call = next < STOP_NAMES.length
           ? "Next stop · " + STOP_NAMES[next]
-          : (fracB > 0.995 ? "SY-1 · Parked · see you at Contact" : "SY-1 · Heading to the edge")
+          : (fracB > 0.995 ? "SS-1 · Parked · see you at Contact" : "SS-1 · Heading to the edge")
       }
 
       // dash offsets
@@ -800,10 +873,6 @@ function ProjectDisc({ project, index, activeFloat, visible, onOpen, onSelect, o
   const opacity = visible * clamp(1 - Math.max(0, Math.abs(distance) - 1.8) / .8)
   const ringId = `project-ring-${index}`
 
-  // V3-style slanted perspective - discs come from depth
-  const rotateY = distance * 25 // Slant effect
-  const rotateX = Math.abs(distance) * 8 // Slight tilt
-
   return <button
     type="button"
     className={`project-disc ${Math.abs(distance) < .5 ? "is-active" : ""}`}
@@ -824,13 +893,14 @@ function ProjectDisc({ project, index, activeFloat, visible, onOpen, onSelect, o
     style={{
       "--disc-color": project.color,
       "--disc-ink": project.ink,
-      "--dx": `${distance * 28}vw`,
-      "--dxm": `${distance * 65}vw`,
-      "--dy": `${Math.abs(distance) * 7}vh`,
-      "--disc-scale": Math.max(.55, 1 - Math.abs(distance) * .13),
-      "--disc-rotate": `${-6 + distance * -3}deg`,
-      "--disc-rotateY": `${rotateY}deg`,
-      "--disc-rotateX": `${rotateX}deg`,
+      "--dx": `calc(${distance * 27}vw + ${distance * distance * 4}vw)`,
+      "--dxm": `calc(${distance * 60}vw + ${distance * distance * 5}vw)`,
+      "--dy": `calc(${distance * -15}vh + ${distance * distance * -3}vh)`,
+      "--dz": "0px",
+      "--disc-scale": Math.pow(1.28, distance),
+      "--disc-rotate": "-6deg",
+      "--disc-rotateY": "-20deg",
+      "--disc-rotateX": "16deg",
       opacity,
       pointerEvents: opacity > .2 ? "auto" : "none",
       zIndex: 20 - Math.abs(index - Math.round(activeFloat)),
@@ -846,7 +916,7 @@ function ProjectDisc({ project, index, activeFloat, visible, onOpen, onSelect, o
           <text x="200" y="112" textAnchor="middle" fontFamily="IBM Plex Mono" fontSize="15" letterSpacing="5" fill={project.ink}>AI WEARABLE</text>
           <path d="M35 202h13l8-9 9 21 10-37 10 48 11-63 10 75 11-89 11 105 11-119 11 133 11-145 11 157 11-133 11 119 11-105 11 89 11-75 11 63 11-48 11 37 11-21 11 9h16" fill="none" stroke={project.ink} strokeWidth="2.6" strokeLinejoin="round" />
           <text x="200" y="322" textAnchor="middle" fontFamily="Anton" fontSize="82" fill={project.ink}>PENDANT</text>
-          <text x="200" y="356" textAnchor="middle" fontFamily="IBM Plex Mono" fontSize="11" letterSpacing="4" fill={project.ink}>S/Y · 04.1</text>
+          <text x="200" y="356" textAnchor="middle" fontFamily="IBM Plex Mono" fontSize="11" letterSpacing="4" fill={project.ink}>S/S · 04.1</text>
         </>}
         {index === 1 && <>
           <g transform="rotate(-10 200 200)"><text x="54" y="176" fontFamily="Anton" fontSize="128" fill={project.ink}>GOV</text><text x="38" y="318" fontFamily="Anton" fontSize="128" fill={project.ink}>GENIE</text></g>
@@ -896,7 +966,7 @@ function ProjectDetail({ index, onClose, onNext }) {
     }
   }, [])
   return <div className="project-detail" role="dialog" aria-modal="true" aria-label={project.title}>
-    <header className="detail-nav"><button type="button" onClick={onClose}><ArrowIcon direction="left" /> All projects</button><span><i>/</i>S/Y</span><button type="button" className="detail-close" onClick={onClose} aria-label="Close project">×</button></header>
+    <header className="detail-nav"><button type="button" onClick={onClose}><ArrowIcon direction="left" /> All projects</button><span>S/S</span><button type="button" className="detail-close" onClick={onClose} aria-label="Close project">×</button></header>
     <main className="detail-main">
       <div className="detail-index">0{index + 1} / 0{projects.length}</div>
       <div className="detail-title-row"><h1>{project.title}</h1><p>Built by <strong>Shreeyansh Singh</strong><span>Type</span>{project.type}</p></div>
@@ -919,8 +989,7 @@ export default function App() {
   const showcaseRef = useRef(null)
   const contactRef = useRef(null)
   const [playing, setPlaying] = useState(true)
-  const [intro, setIntro] = useState(true)
-  const [wordIndex, setWordIndex] = useState(0)
+  const [heroDark, setHeroDark] = useState(false)
   const [time, setTime] = useState("")
   const [navHover, setNavHover] = useState(false)
   const [detailIndex, setDetailIndex] = useState(null)
@@ -930,7 +999,6 @@ export default function App() {
   // Refs for V3-style staggered reveal (Web Animations API)
   const refNav = useRef(null)
   const refStatus = useRef(null)
-  const refJp = useRef(null)
   const refEyebrow = useRef(null)
   const refH1 = useRef(null)
   const refCta = useRef(null)
@@ -955,91 +1023,6 @@ export default function App() {
   const activeIndex = Math.round(activeFloat)
   const activeProject = projects[activeIndex]
   const night = ease(clamp((showcaseProgress - .95) / .05))
-
-  // Handle loading screen completion
-  useEffect(() => {
-    const loadingTimer = setTimeout(() => {
-      setIsLoading(false)
-    }, 4500) // Match LoadingScreen completion time
-
-    return () => clearTimeout(loadingTimer)
-  }, [])
-
-  // ── V3-style intro: staggered Web Animations API reveal ──────────────────────
-  useEffect(() => {
-    if (isLoading) return // Don't start intro animations until loading is done
-
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches
-    const k = 1 // intro speed factor (1 = normal)
-
-    // Items to animate in with their delay times (seconds), matching V3's reveal()
-    const items = [
-      [refNav.current,      0.15, ""],
-      [refStatus.current,   0.25, ""],
-      [refJp.current,       0.30, "translateY(-50%) "],
-      [refEyebrow.current,  0.35, ""],
-    ]
-
-    // H1 words - each word gets a slight stagger
-    const h1El = refH1.current
-    if (h1El) {
-      const wordEls = h1El.querySelectorAll(".hero-word")
-      wordEls.forEach((w, i) => items.push([w, 2.45 + i * 0.08, ""]))
-    }
-
-    items.push([refCta.current,  3.0,  ""])
-    items.push([refFoot.current, 3.15, ""])
-
-    const anims = []
-    for (const [el, at, base] of items) {
-      if (!el || !el.animate) continue
-      if (reduce) {
-        // No animation, just show immediately
-        el.style.opacity = "1"
-        continue
-      }
-      const a = el.animate(
-        [
-          { opacity: 0, transform: base + "translateY(18px)", filter: "blur(8px)" },
-          { opacity: 1, transform: base + "translateY(0px)",  filter: "blur(0px)"  },
-        ],
-        {
-          duration: 1000 * Math.sqrt(k),
-          delay: at * 1000 * k,
-          easing: "cubic-bezier(.2,.7,.2,1)",
-          fill: "both",
-        }
-      )
-      a.onfinish = () => { try { a.cancel() } catch (e) {} }
-      anims.push(a)
-    }
-
-    // Auto-end intro at ~4s (matching V3's e >= 4.0 endIntro)
-    const timer = setTimeout(() => {
-      setIntro(false)
-      anims.forEach(a => { try { a.finish() } catch (e) {} })
-    }, 4000)
-
-    const skip = () => {
-      clearTimeout(timer)
-      setIntro(false)
-      anims.forEach(a => { try { a.finish() } catch (e) {} })
-    }
-    window.addEventListener("wheel", skip, { passive: true, once: true })
-    window.addEventListener("touchstart", skip, { passive: true, once: true })
-
-    return () => {
-      clearTimeout(timer)
-      window.removeEventListener("wheel", skip)
-      window.removeEventListener("touchstart", skip)
-      anims.forEach(a => { try { a.cancel() } catch (e) {} })
-    }
-  }, [])
-
-  useEffect(() => {
-    const timer = setInterval(() => setWordIndex(index => (index + 1) % words.length), 2800)
-    return () => clearInterval(timer)
-  }, [])
 
   useEffect(() => {
     const update = () => setTime(new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }))
@@ -1102,55 +1085,52 @@ export default function App() {
   }
 
   return <div className="portfolio-shell">
-    <header ref={refNav} className={`floating-nav ${collapsed ? "is-collapsed" : ""}`} style={{ opacity: 0 }}>
-      <button type="button" className="nav-logo" onClick={() => goTo(heroRef)}><span>/</span>Shreeyansh</button>
+    <header ref={refNav} className={`floating-nav ${collapsed ? "is-collapsed" : ""} ${heroDark || heroProgress > .82 ? "is-hero-dark" : ""}`}>
+    <button type="button" className="nav-logo" onClick={() => goTo(heroRef)} aria-label="Back to the top">Shreeyansh</button>
       <div className="nav-actions" onMouseEnter={() => setNavHover(true)} onMouseLeave={() => setNavHover(false)}>
         <nav className="nav-pill" aria-label="Sections">
-          {["home", "about", "services", "projects", "contact"].map(item => <button key={item} type="button" data-active={activeNav === item} onClick={() => {
-            if (item === "home") goTo(heroRef)
+          {[["work", "projects"], ["about", "about"], ["lab", "services"], ["contact", "contact"]].map(([label, item]) => <button key={item} type="button" data-active={activeNav === item} onClick={() => {
             if (item === "about") goTo(aboutRef, .62)
             if (item === "services") goTo(showcaseRef, .28)
             if (item === "projects") goTo(showcaseRef, .58)
             if (item === "contact") goTo(contactRef, .75)
-          }}>{item}</button>)}
+          }}>{label}</button>)}
         </nav>
-        <button type="button" className="play-button" aria-label={playing ? "Pause the record" : "Play the record"} onClick={() => setPlaying(value => !value)}><span className={playing ? "is-spinning" : ""} /></button>
-        <button type="button" className="talk-button" onClick={() => goTo(contactRef, .75)}><span><ArrowIcon /></span><em>Let's talk</em></button>
+        <button type="button" className={`theme-toggle ${heroDark ? "is-dark" : ""}`} aria-label={heroDark ? "Switch to day theme" : "Switch to night theme"} onClick={() => setHeroDark(value => !value)}><span /><em>{heroDark ? "Night" : "Day"}</em></button>
       </div>
     </header>
 
     <main>
       <div ref={heroRef} className="hero-track">
-        <section className={`hero ${intro ? "is-night" : ""}`} aria-label="Introduction">
-          <TurntableCanvas progress={heroProgress} dark={intro || heroProgress > .82} playing={playing} onToggle={() => setPlaying(value => !value)} introActive={intro} />
-          <div className="turntable-ripple" aria-hidden="true" />
-          <div ref={refJp} className="hero-japanese" style={{ opacity: 0 }}>星を見上げて、何でも作れる</div>
+        <section className={`hero ${heroDark || heroProgress > .82 ? "is-night" : ""}`} aria-label="Introduction">
+          <TurntableCanvas progress={heroProgress} dark={heroDark || heroProgress > .82} playing={playing} onToggle={() => setPlaying(value => !value)} />
           <div className="hero-copy" style={{ opacity: 1 - clamp(heroProgress / .2), transform: `translateY(${heroProgress * 80}px)` }}>
-            <p ref={refEyebrow} className="eyebrow hero-eyebrow" style={{ opacity: 0 }}><span />Designer &amp; Developer — Portfolio 2026</p>
+            <p ref={refEyebrow} className="eyebrow hero-eyebrow"><span />Designer &amp; Developer — Portfolio 2026</p>
             <h1 ref={refH1}>
-              {/* Split into animatable words for staggered reveal */}
-              <span className="hero-word" style={{ opacity: 0 }}>I make things </span>
-              <span className="hero-word" style={{ opacity: 0 }}>that feel like </span>
-              <em key={wordIndex} className="hero-word" style={{ opacity: 0 }}>{words[wordIndex]}</em>
+              <span>I make things </span>
+              <span>that feel like </span>
+              <span className="hero-word-rotator" aria-live="polite">
+                {heroWords.map(word => <em key={word}>{word}</em>)}
+              </span>
             </h1>
-            <div ref={refCta} className="hero-bottom" style={{ opacity: 0 }}><p>Interfaces, motion and code, built with the patience of someone who spends too many nights looking up.</p><button type="button" className="outline-cta" onClick={() => goTo(showcaseRef, .58)}>See the work <ArrowIcon direction="right" /></button></div>
+            <div ref={refCta} className="hero-bottom"><p>Interfaces, motion and code, built with the patience of someone who spends too many nights looking up.</p><button type="button" className="outline-cta" onClick={() => goTo(showcaseRef, .58)}>See the work <ArrowIcon direction="right" /></button></div>
           </div>
-          <div ref={refStatus} className="hero-status" style={{ opacity: 0 }}><span><i />Available for work</span><span>Sky over Mumbai · {time}</span></div>
-          <footer ref={refFoot} className="hero-footer" style={{ opacity: 0 }}><span>RA 05h 35m 17s · Dec −05° 23′</span><span className="hero-hint">Tap the turntable · Click the sky to warp</span><span className="scroll-cue"><i />Scroll</span></footer>
+          <div ref={refStatus} className="hero-status"><span><i />Available for work</span><span>Sky over Mumbai · {time}</span></div>
+          <footer ref={refFoot} className="hero-footer"><span className="scroll-cue"><i />Scroll</span></footer>
         </section>
       </div>
 
       <section className="about-section">
+        <FlightPath trackRef={aboutTrackRef} stageRef={aboutStageRef} h2Ref={aboutH2Ref} stopsRef={aboutStopsRef} />
         <div ref={el => { aboutRef.current = el; aboutTrackRef.current = el }} className="about-intro-track">
           <div ref={aboutStageRef} className="about-intro">
-            <FlightPath trackRef={aboutTrackRef} stageRef={aboutStageRef} h2Ref={aboutH2Ref} stopsRef={aboutStopsRef} />
             <div className="about-heading"><p className="eyebrow"><span />Side A · Track 01</p><h2 ref={aboutH2Ref}>About <em>me</em></h2><p className="about-subtitle">The person behind the record. Keep scrolling and the ship will show you around.</p></div>
           </div>
         </div>
         <div ref={aboutStopsRef} className="about-stops">
           {aboutItems.map((item, index) => <Reveal key={item.n} className={`about-stop ${index % 2 ? "reverse" : ""}`}>
-            <article data-stop={item.n}><p className="stop-kicker"><span>{item.n}</span> · {item.kicker}</p><p className="stop-lead">{item.lead}</p>{item.body && <p className="stop-body">{item.body}</p>}</article>
-            <div className="stop-number"><span>{item.n}</span><i /><p>Stop {item.n} · {item.kicker}</p></div>
+          <article><p className="stop-kicker"><span>{item.n}</span> · {item.kicker}</p><p className="stop-lead">{item.lead}</p>{item.body && <p className="stop-body">{item.body}</p>}</article>
+          <div className="stop-number" data-stop={item.n}><span>{item.n}</span><i /><p>Stop {item.n} · {item.kicker}</p></div>
           </Reveal>)}
           <div data-exit style={{ height: 1, pointerEvents: "none" }} />
         </div>
@@ -1159,7 +1139,7 @@ export default function App() {
       <section ref={showcaseRef} className="showcase-track">
         <div className={`showcase-stage ${dragRef.current ? "is-dragging" : ""}`}>
           <div className="showcase-light" style={{ opacity: serviceIn * (1 - night) }} />
-          <div className="transition-record" style={{ opacity: clamp((showcaseProgress - .07) / .03) * (1 - serviceIn), transform: `translate(-50%,-50%) scale(${8 - highlightOut * 7})` }}><span>S/Y</span></div>
+          <div className="transition-record" style={{ opacity: clamp((showcaseProgress - .07) / .03) * (1 - serviceIn), transform: `translate(-50%,-50%) scale(${8 - highlightOut * 7})` }}><span>S/S</span></div>
           <div className="highlights-panel" style={{ opacity: 1 - highlightOut, pointerEvents: highlightOut > .8 ? "none" : "auto", transform: `translateY(${-highlightOut * 60}px)` }}>
             <div className="section-heading light-heading"><p className="eyebrow"><span />Side A · Track 02<span /></p><h2>High<em>lights</em></h2></div>
             <div className="highlights-grid">{highlights.map(item => <article key={item.label}><strong><CountUp value={item.value} suffix={item.suffix} active={showcaseProgress < .18} /></strong><span>{item.label}</span></article>)}</div>
@@ -1190,16 +1170,16 @@ export default function App() {
         <div className="contact-intro-track">
           <div className="contact-intro">
             <TurntableCanvas progress={0} dark playing={playing} onToggle={() => setPlaying(value => !value)} />
-            <div className="contact-heading" style={{ opacity: clamp((contactProgress - .15) / .35), transform: `translateY(${(1 - clamp((contactProgress - .15) / .35)) * 24}px)` }}><div className="contact-track-label"><span>Side B · Start a conversation</span><span>05</span></div><div><h2>Let's make<span><em>Side B</em> together.</span></h2><p>An idea, a product, a role, or a hackathon team that needs one more builder. <strong>I'd like to hear it.</strong></p></div></div>
+            <div className="contact-heading" style={{ opacity: clamp((contactProgress - .15) / .35), transform: `translateY(${(1 - clamp((contactProgress - .15) / .35)) * 24}px)` }}><div className="contact-track-label"><span>Side B · Start a conversation</span><span>05</span></div><div><h2>Let&apos;s make<span><em>Side B</em> together.</span></h2><p>An idea, a product, a role, or a hackathon team that needs one more builder. <strong>I&apos;d like to hear it.</strong></p></div></div>
           </div>
         </div>
         <div className="contact-content">
           <div className="email-row"><a href="mailto:shreeyanshsingh07@gmail.com">shreeyanshsingh07@gmail.com</a><a href="mailto:shreeyanshsingh07@gmail.com" aria-label="Email Shreeyansh"><ArrowIcon /></a></div>
           <div className="contact-grid">
-            <form className="signal-form" onSubmit={sendSignal}><div className="form-heading"><div><span>Transmission · SY-1</span><h3>Send a <em>signal</em></h3></div><svg viewBox="0 0 120 130" aria-hidden="true"><ellipse cx="60" cy="124" rx="40" ry="5" fill="rgba(240,194,122,.12)" stroke="rgba(240,194,122,.4)" /><g transform="translate(60 92) rotate(-90)"><Spaceship /></g></svg></div><div className="form-row"><label>Name<input name="name" type="text" autoComplete="name" placeholder="Your name" /></label><label>Email<input name="email" type="email" autoComplete="email" placeholder="you@company.com" required /></label></div><label>Message<textarea name="message" rows="4" placeholder="What should we build?" required /></label><div className="form-submit"><p aria-live="polite">{formStatus}</p><button type="submit">Send signal <ArrowIcon direction="right" /></button></div></form>
-            <div className="contact-details"><div><span>Based in</span><strong>Mumbai, IN</strong></div><div><span>Status</span><strong className="available"><i />Available for work</strong></div><div><span>LinkedIn</span><a href="https://www.linkedin.com/in/shreeyansh-singh-858ab633b" target="_blank" rel="noreferrer">shreeyansh-singh ↗</a></div><div><span>GitHub</span><a href="https://github.com/Shreeyansh-07" target="_blank" rel="noreferrer">Shreeyansh-07 ↗</a></div><div><span>Resume</span><a href="/Shreeyansh Singh Resume .pdf" download>Download PDF ↗</a></div><p>星を見上げて、何でも作れる</p></div>
+            <form className="signal-form" onSubmit={sendSignal}><div className="form-heading"><div><span>Transmission · SS-1</span><h3>Send a <em>signal</em></h3></div><svg viewBox="0 0 120 130" aria-hidden="true"><ellipse cx="60" cy="124" rx="40" ry="5" fill="rgba(240,194,122,.12)" stroke="rgba(240,194,122,.4)" /><g transform="translate(60 92) rotate(-90)"><Spaceship /></g></svg></div><div className="form-row"><label>Name<input name="name" type="text" autoComplete="name" placeholder="Your name" /></label><label>Email<input name="email" type="email" autoComplete="email" placeholder="you@company.com" required /></label></div><label>Message<textarea name="message" rows="4" placeholder="What should we build?" required /></label><div className="form-submit"><p aria-live="polite">{formStatus}</p><button type="submit">Send signal <ArrowIcon direction="right" /></button></div></form>
+            <div className="contact-details"><div><span>Based in</span><strong>Mumbai, IN</strong></div><div><span>Status</span><strong className="available"><i />Available for work</strong></div><div><span>LinkedIn</span><a href="https://www.linkedin.com/in/shreeyansh-singh-858ab633b" target="_blank" rel="noreferrer">shreeyansh-singh ↗</a></div><div><span>GitHub</span><a href="https://github.com/Shreeyansh-07" target="_blank" rel="noreferrer">Shreeyansh-07 ↗</a></div><div><span>Resume</span><a href="/resume.pdf" download>Download resume ↗</a></div></div>
           </div>
-          <footer className="site-footer"><span className="footer-mark"><i>/</i>S/Y</span><a href="mailto:shreeyanshsingh07@gmail.com">shreeyanshsingh07@gmail.com</a><span>© 2026 Shreeyansh Singh · Side A + B</span><button type="button" onClick={() => goTo(heroRef)}>Back to top · rewind <ArrowIcon direction="up" /></button></footer>
+          <footer className="site-footer"><span className="footer-mark">S/S</span><a href="/resume.pdf" download>Download resume ↗</a><a href="mailto:shreeyanshsingh07@gmail.com">shreeyanshsingh07@gmail.com</a><span>© Shreeyansh Singh</span><button type="button" onClick={() => goTo(heroRef)}>Back to top · rewind <ArrowIcon direction="up" /></button></footer>
         </div>
       </section>
     </main>
