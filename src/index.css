@@ -308,6 +308,48 @@ textarea:focus-visible {
   height: 100%;
 }
 
+/* V3 Ripple effect around turntable */
+.turntable-ripple {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 400px;
+  height: 400px;
+  margin-left: -200px;
+  margin-top: -200px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.turntable-ripple::before,
+.turntable-ripple::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid rgba(240, 194, 122, 0.4);
+  animation: ripple-expand 3s ease-out infinite;
+}
+
+.turntable-ripple::after {
+  animation-delay: 1.5s;
+}
+
+@keyframes ripple-expand {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
 .hero-japanese {
   position: absolute;
   left: clamp(20px,4vw,56px);
@@ -1197,7 +1239,8 @@ textarea:focus-visible {
 .disc-stage {
   position: absolute;
   inset: 0;
-  perspective: 1600px;
+  perspective: 2000px;
+  perspective-origin: 50% 50%;
 }
 
 .project-disc {
@@ -1212,10 +1255,11 @@ textarea:focus-visible {
   background: transparent;
   filter: drop-shadow(0 26px 34px rgba(31,28,24,.22));
   cursor: grab;
-  transform: translate(-50%,-50%) translate(var(--dx),var(--dy)) scale(var(--disc-scale)) rotate(var(--disc-rotate));
+  transform: translate(-50%,-50%) translate(var(--dx),var(--dy)) scale(var(--disc-scale)) rotateY(var(--disc-rotateY, 0deg)) rotateX(var(--disc-rotateX, 0deg)) rotateZ(var(--disc-rotate));
   transition: filter .3s ease;
   will-change: transform,opacity;
   touch-action: pan-y;
+  transform-style: preserve-3d;
 }
 
 .project-disc:active {
@@ -1710,10 +1754,11 @@ textarea:focus-visible {
   display: grid;
   grid-template-columns: repeat(auto-fit,minmax(min(200px,100%),1fr));
   align-items: end;
-  gap: 24px;
+  gap: 24px 40px;
   padding: clamp(40px,7vh,72px) 0 32px;
   color: var(--muted);
   font-size: 12px;
+  border-top: 1px solid rgba(236,235,230,.1);
 }
 
 .footer-mark {
@@ -1721,16 +1766,19 @@ textarea:focus-visible {
   font-family: "Instrument Serif",serif;
   font-size: clamp(56px,6vw,96px);
   line-height: .85;
+  grid-column: 1;
 }
 
 .footer-mark i {
-  color: var(--muted);
+  color: var(--amber);
   font-weight: 400;
+  font-style: italic;
 }
 
 .site-footer > a {
   color: var(--soft);
   overflow-wrap: anywhere;
+  transition: color .3s ease;
 }
 
 .site-footer > a:hover,
@@ -1750,11 +1798,29 @@ textarea:focus-visible {
   font-size: 12px;
   letter-spacing: .06em;
   cursor: pointer;
+  transition: color .3s ease;
 }
 
 .site-footer button svg {
   width: 14px;
   height: 14px;
+  transition: transform .3s ease;
+}
+
+.site-footer button:hover svg {
+  transform: translateY(-4px);
+}
+
+/* P2 Cobalt style footer additions */
+.site-footer::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--amber), transparent);
+  opacity: 0.3;
 }
 
 .project-detail {
@@ -2544,7 +2610,7 @@ textarea:focus-visible {
   .project-disc {
     top: 52%;
     width: min(72vw,310px);
-    transform: translate(-50%,-50%) translate(var(--dxm),var(--dy)) scale(var(--disc-scale)) rotate(var(--disc-rotate));
+    transform: translate(-50%,-50%) translate(var(--dxm),var(--dy)) scale(var(--disc-scale)) rotateY(var(--disc-rotateY, 0deg)) rotateX(var(--disc-rotateX, 0deg)) rotateZ(var(--disc-rotate));
   }
 
   .project-quotes {

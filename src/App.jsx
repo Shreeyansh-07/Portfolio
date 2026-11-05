@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react"
-import LoadingScreen from "./components/LoadingScreen"
 
 const clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value))
 const ease = value => value * value * (3 - 2 * value)
@@ -800,6 +799,11 @@ function ProjectDisc({ project, index, activeFloat, visible, onOpen, onSelect, o
   const distance = index - activeFloat
   const opacity = visible * clamp(1 - Math.max(0, Math.abs(distance) - 1.8) / .8)
   const ringId = `project-ring-${index}`
+
+  // V3-style slanted perspective - discs come from depth
+  const rotateY = distance * 25 // Slant effect
+  const rotateX = Math.abs(distance) * 8 // Slight tilt
+
   return <button
     type="button"
     className={`project-disc ${Math.abs(distance) < .5 ? "is-active" : ""}`}
@@ -825,9 +829,11 @@ function ProjectDisc({ project, index, activeFloat, visible, onOpen, onSelect, o
       "--dy": `${Math.abs(distance) * 7}vh`,
       "--disc-scale": Math.max(.55, 1 - Math.abs(distance) * .13),
       "--disc-rotate": `${-6 + distance * -3}deg`,
+      "--disc-rotateY": `${rotateY}deg`,
+      "--disc-rotateX": `${rotateX}deg`,
       opacity,
       pointerEvents: opacity > .2 ? "auto" : "none",
-      zIndex: 20 - index,
+      zIndex: 20 - Math.abs(index - Math.round(activeFloat)),
     }}
   >
     <span className="disc-face">
@@ -920,7 +926,6 @@ export default function App() {
   const [detailIndex, setDetailIndex] = useState(null)
   const [formStatus, setFormStatus] = useState("Lands in his inbox via your mail app.")
   const dragRef = useRef(null)
-  const [isLoading, setIsLoading] = useState(true)
 
   // Refs for V3-style staggered reveal (Web Animations API)
   const refNav = useRef(null)
@@ -982,8 +987,8 @@ export default function App() {
       wordEls.forEach((w, i) => items.push([w, 2.45 + i * 0.08, ""]))
     }
 
-    items.push([refCta.current,  1.0,  ""])
-    items.push([refFoot.current, 1.15, ""])
+    items.push([refCta.current,  3.0,  ""])
+    items.push([refFoot.current, 3.15, ""])
 
     const anims = []
     for (const [el, at, base] of items) {
@@ -1009,11 +1014,11 @@ export default function App() {
       anims.push(a)
     }
 
-    // Auto-end intro at ~2s (after loading screen completes)
+    // Auto-end intro at ~4s (matching V3's e >= 4.0 endIntro)
     const timer = setTimeout(() => {
       setIntro(false)
       anims.forEach(a => { try { a.finish() } catch (e) {} })
-    }, 2000)
+    }, 4000)
 
     const skip = () => {
       clearTimeout(timer)
@@ -1029,7 +1034,7 @@ export default function App() {
       window.removeEventListener("touchstart", skip)
       anims.forEach(a => { try { a.cancel() } catch (e) {} })
     }
-  }, [isLoading])
+  }, [])
 
   useEffect(() => {
     const timer = setInterval(() => setWordIndex(index => (index + 1) % words.length), 2800)
@@ -1096,9 +1101,7 @@ export default function App() {
     dragRef.current = null
   }
 
-  return <>
-    {isLoading && <LoadingScreen />}
-    <div className="portfolio-shell">
+  return <div className="portfolio-shell">
     <header ref={refNav} className={`floating-nav ${collapsed ? "is-collapsed" : ""}`} style={{ opacity: 0 }}>
       <button type="button" className="nav-logo" onClick={() => goTo(heroRef)}><span>/</span>Shreeyansh</button>
       <div className="nav-actions" onMouseEnter={() => setNavHover(true)} onMouseLeave={() => setNavHover(false)}>
@@ -1120,6 +1123,7 @@ export default function App() {
       <div ref={heroRef} className="hero-track">
         <section className={`hero ${intro ? "is-night" : ""}`} aria-label="Introduction">
           <TurntableCanvas progress={heroProgress} dark={intro || heroProgress > .82} playing={playing} onToggle={() => setPlaying(value => !value)} introActive={intro} />
+          <div className="turntable-ripple" aria-hidden="true" />
           <div ref={refJp} className="hero-japanese" style={{ opacity: 0 }}>星を見上げて、何でも作れる</div>
           <div className="hero-copy" style={{ opacity: 1 - clamp(heroProgress / .2), transform: `translateY(${heroProgress * 80}px)` }}>
             <p ref={refEyebrow} className="eyebrow hero-eyebrow" style={{ opacity: 0 }}><span />Designer &amp; Developer — Portfolio 2026</p>
@@ -1201,5 +1205,4 @@ export default function App() {
     </main>
     {detailIndex !== null && <ProjectDetail index={detailIndex} onClose={() => setDetailIndex(null)} onNext={() => setDetailIndex(index => (index + 1) % projects.length)} />}
   </div>
-  </>
 }
