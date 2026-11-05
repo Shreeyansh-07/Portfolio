@@ -2,12 +2,7 @@ import { useRef, Suspense, useEffect, useState } from "react"
 import { Canvas, useFrame } from "@react-three/fiber"
 import { useGLTF, Center } from "@react-three/drei"
 
-// Workaround for Three.js texture blob decoding issues in some browser environments.
-// By disabling window.createImageBitmap, we force Three.js to use the standard, fully compatible
-// HTML Image element loading pathway, resolving "Couldn't load texture blob" errors.
-if (typeof window !== "undefined" && window.createImageBitmap) {
-  window.createImageBitmap = undefined
-}
+// Note: createImageBitmap is left intact to allow the HeroMascot GLTFLoader to work correctly.
 
 function Model({ progressRef }) {
   const modelRef = useRef()

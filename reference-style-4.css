@@ -1,0 +1,68 @@
+
+html,body{margin:0;background:#030304;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}a:hover{color:inherit;opacity:1}
+.w{display:inline-block}
+@keyframes wordIn{from{opacity:0;transform:translateY(0.35em);filter:blur(8px)}to{opacity:1;transform:none;filter:none}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+@keyframes flick{from{transform:scaleX(.65)}to{transform:scaleX(1.15)}}
+.flame{transform-origin:4px 14px;animation:flick .11s ease-in-out infinite alternate}
+.card{opacity:.32;transform:translateY(28px) scale(.985);border:1px solid rgba(236,235,230,.09);transition:opacity .8s ease,transform 1s cubic-bezier(.2,.7,.2,1),border-color .8s ease,box-shadow .8s ease}
+[data-on="1"] .card{opacity:1;transform:none;border-color:rgba(240,194,122,.42);box-shadow:0 40px 120px rgba(240,194,122,.07)}
+.num{color:transparent;-webkit-text-stroke:1px rgba(236,235,230,.22);transition:-webkit-text-stroke-color .8s ease,color .8s ease}
+[data-on="1"] .num{-webkit-text-stroke-color:#f0c27a}
+.dot{width:14px;height:14px;border-radius:50%;border:1.5px solid rgba(236,235,230,.32);background:#0b0b0d;transition:all .6s ease}
+[data-on="1"] .dot{border-color:#f0c27a;background:#f0c27a;box-shadow:0 0 0 7px rgba(240,194,122,.14),0 0 28px rgba(240,194,122,.55)}
+.hlcard{opacity:.25;transform:translateY(26px);border:1px solid rgba(236,235,230,.09);transition:opacity .7s ease,transform .9s cubic-bezier(.2,.7,.2,1),border-color .7s ease}
+[data-on="1"] .hlcard{opacity:1;transform:none;border-color:rgba(240,194,122,.3)}
+[data-on="1"] .hlcard:nth-child(2){transition-delay:.08s}[data-on="1"] .hlcard:nth-child(3){transition-delay:.16s}[data-on="1"] .hlcard:nth-child(4){transition-delay:.24s}[data-on="1"] .hlcard:nth-child(5){transition-delay:.32s}
+.hlnum{color:#f0c27a}
+.hllab{color:#b9b8b2}
+@keyframes pjIn{from{opacity:0;transform:translateY(12px);filter:blur(6px)}to{opacity:1;transform:none;filter:none}}
+.scrib{opacity:0;transform-origin:50% 50%;transition:opacity .35s ease}
+.scrib path{stroke-dasharray:1 1;stroke-dashoffset:1;transition:stroke-dashoffset .9s cubic-bezier(.6,.1,.2,1)}
+.pjd:hover .scrib{opacity:1;animation:scribSpin 7s linear infinite}
+.pjd:hover .scrib path{stroke-dashoffset:0}
+@keyframes scribSpin{to{transform:rotate(360deg)}}
+@keyframes svSpin{to{transform:rotate(360deg)}}
+.svsp{animation:spTw 3.2s ease-in-out infinite}
+@keyframes spTw{0%,100%{opacity:.35;transform:scale(.8)}50%{opacity:1;transform:scale(1)}}
+.cloudB{animation:clDrift 26s ease-in-out infinite alternate}.cloudF{animation:clDrift 18s ease-in-out infinite alternate-reverse}
+@keyframes clDrift{from{transform:translateX(-24px)}to{transform:translateX(24px)}}
+.svdesc{opacity:0;transform:translateY(8px);transition:opacity .45s ease,transform .5s cubic-bezier(.2,.7,.2,1)}
+.svcard:hover .svglass{transform:translateY(-8px);box-shadow:inset 0 1px 0 rgba(255,255,255,.26),0 40px 80px rgba(31,28,24,.34)}
+.svcard:hover .svdesc{opacity:1;transform:none}
+.svcard:hover .svplanet{transform:translate(-6%,-8%)}
+[data-on="1"].navb{background:rgba(240,194,122,.12) !important;color:#f0c27a !important;box-shadow:inset 0 0 0 1px rgba(240,194,122,.3)}
+.navb:hover{color:#ecebe6 !important}
+/* nav: collapse to the little record past the hero */
+.nvc{transition:max-width .7s cubic-bezier(.6,0,.2,1),opacity .45s ease,margin .7s cubic-bezier(.6,0,.2,1),padding .7s cubic-bezier(.6,0,.2,1),border-width .7s ease,transform .7s cubic-bezier(.6,0,.2,1)}
+[data-col="1"] .nvc{max-width:0 !important;opacity:0;margin:0 !important;padding-left:0 !important;padding-right:0 !important;border-width:0 !important;pointer-events:none;transform:translateX(16px)}
+.nvlogo{transition:opacity .5s ease,transform .6s cubic-bezier(.6,0,.2,1)}
+[data-col="1"] ~ .nvlogo, .nvcol .nvlogo{opacity:0;transform:translateY(-8px);pointer-events:none}
+@keyframes cueDot{0%{transform:translateY(0);opacity:0}20%{opacity:1}80%{opacity:1}100%{transform:translateY(12px);opacity:0}}
+.cue i{animation:cueDot 1.8s cubic-bezier(.5,0,.5,1) infinite}
+@media (max-width:980px){.navl{display:none}}
+/* ---------- phones ---------- */
+@media (max-width:640px){
+  nav[aria-label="Sections"]{display:none !important}
+  .ctaLabel{display:none}
+  .ctaBtn{padding:0 6px !important;min-height:52px !important}
+  .nvlogo{font-size:20px !important}
+  .jpv,.hint,.heroP,.heroStat{display:none !important}
+  .hlgrid{grid-template-columns:repeat(2,1fr) !important;gap:10px !important}
+  .hlgrid .hlcard{min-height:96px !important;padding:14px 10px !important;gap:6px !important;border-radius:16px !important}
+  .hlgrid .hlcard:last-child{grid-column:1 / -1}
+  .hlgrid .hlnum{font-size:40px !important}
+  .hlgrid .hllab{font-size:9.5px !important}
+  .svscope{display:none}
+  .svglass{padding:14px !important}
+  .svglass h3{font-size:17px !important}
+  .svdesc{display:none}
+  .svnum{font-size:38px !important;margin-top:10px !important}
+  .pjinfo{width:calc(100% - 110px) !important;top:8vh !important}
+  .pjq{gap:14px !important}
+  .pjq > div{max-width:46% !important}
+  .pjq > div > span:last-child{font-size:17px !important}
+  .cheadBody{margin:auto 0 5vh !important;max-width:100% !important}
+}
+@media (prefers-reduced-motion:reduce){.flame{animation:none}.cue i{animation:none}.svsp,.cloudB,.cloudF{animation:none}}

@@ -1,0 +1,1 @@
+window.__resources = {"https://cdn.jsdelivr.net/npm/react@18.3.1/umd/react.production.min.js":"blob:file:///ba696d4e-8995-4ca2-bb63-bb1465287555","https://cdn.jsdelivr.net/npm/react-dom@18.3.1/umd/react-dom.production.min.js":"blob:file:///51f7c4ad-ae92-42e8-a102-f66423ccbdc5"};

@@ -1,1347 +1,1205 @@
-import { useState, useEffect, useRef } from "react"
-import { motion, useInView, AnimatePresence } from "framer-motion"
-import { Github, Linkedin, Mail, ArrowUpRight, ChevronDown, Sparkles, Bot, X, Menu } from "lucide-react"
-import { Joyride } from "react-joyride"
-
-// Custom Components
-import {
-  ContactButton,
-  LiveProjectButton,
-  FadeIn,
-  Magnet,
-  AnimatedText
-} from "./components/components"
-import FoldcraftPage from "./components/FoldcraftPage"
+import { useEffect, useRef, useState } from "react"
 import LoadingScreen from "./components/LoadingScreen"
-import Scroll3DScene, { preload3DModel } from "./components/Scroll3DScene"
 
-// Smooth CountUp Animation Component using useInView and requestAnimationFrame
-function Counter({ value, suffix = "" }) {
-  const ref = useRef(null)
-  const isInView = useInView(ref, { once: true, margin: "-100px" })
-  const [count, setCount] = useState(0)
+const clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value))
+const ease = value => value * value * (3 - 2 * value)
+const words = ["starlight", "gravity", "orbit", "infinity"]
+
+const aboutItems = [
+  {
+    n: "01",
+    kicker: "Who I am",
+    lead: "I am a Computer Engineering student and Full Stack Developer focused on building scalable, secure, and intelligent software.",
+    body: "My interests span backend engineering, AI systems, cloud technologies, and modern web development. I enjoy transforming ambitious ideas into products that solve meaningful real-world problems.",
+  },
+  {
+    n: "02",
+    kicker: "What I've built",
+    lead: "Over the past few years, I've built AI-powered platforms, secure web applications, and distributed backend systems while continuously improving my problem-solving skills through competitive programming and hackathons.",
+  },
+  {
+    n: "03",
+    kicker: "Off the clock",
+    lead: "Outside of coding, I enjoy learning new technologies, participating in hackathons, and exploring scalable software architecture.",
+  },
+]
+
+const highlights = [
+  { value: 6, suffix: "+", label: "Hackathon + paper presentation wins" },
+  { value: 150, suffix: "+", label: "LeetCode problems solved" },
+  { value: 10, suffix: "+", label: "Major projects built" },
+  { value: 3, suffix: "+", label: "Years of programming experience" },
+  { value: 100, suffix: "%", label: "Passion for learning" },
+]
+
+const services = [
+  {
+    n: "01",
+    cat: "SY-03.1",
+    title: "Full Stack Development",
+    desc: "Designing modern web applications using React, Node.js, Spring Boot, Express, and MongoDB with clean architecture and responsive user experiences.",
+    colors: ["#6a5634", "#2a2117", "#d9a85f"],
+    icon: "code",
+  },
+  {
+    n: "02",
+    cat: "SY-03.2",
+    title: "Cloud & System Design",
+    desc: "Architecting secure databases, Dockerized deployments, CI/CD pipelines, and scalable cloud infrastructure for production-ready applications.",
+    colors: ["#3c3f80", "#17183a", "#7d8ae0"],
+    icon: "cloud",
+  },
+  {
+    n: "03",
+    cat: "SY-03.3",
+    title: "Frontend Engineering",
+    desc: "Building responsive, visually engaging, and accessible web applications with modern UI technologies, smooth interactions, and optimized performance.",
+    colors: ["#723430", "#2b1214", "#e07a62"],
+    icon: "screen",
+  },
+  {
+    n: "04",
+    cat: "SY-03.4",
+    title: "AI Application",
+    desc: "Building AI-powered assistants, computer vision solutions, intelligent automation systems, and LLM integrations using Python, OpenCV, and modern AI APIs.",
+    colors: ["#255953", "#0e2524", "#6fc9b4"],
+    icon: "spark",
+  },
+]
+
+const projects = [
+  {
+    title: "AI Wearable Pendant",
+    short: ["AI WEARABLE", "PENDANT"],
+    type: "Smart personal assistant",
+    year: "2025",
+    stack: ["Python", "OpenCV", "LLMs", "Audio processing"],
+    color: "#f0c27a",
+    ink: "#1a1612",
+    ring: "ESP32-C3 · INMP441",
+    quotes: [["Recognition", "Appreciation post on LinkedIn"], ["Highlight", "Meeting notes by voice"]],
+    description: "A pendant built on an ESP32-C3 and an INMP441 microphone. It captures conversations, writes summaries, pulls out meeting notes and triggers automations by voice.",
+    images: ["/pendant_product.png", "/pendant_usage.png", "/pendant_app.png"],
+    link: "https://www.linkedin.com/posts/sripriyagn7_just-hired-an-intern-who-we-couldnt-say-activity-7398667806042574848-ciXF",
+    linkLabel: "Appreciation post",
+    tags: ["Capture", "Summarize", "Automate", "By voice"],
+  },
+  {
+    title: "GovGenie AI Portal",
+    short: ["GOV", "GENIE"],
+    type: "AI government platform",
+    year: "2026",
+    stack: ["React · Node.js", "MongoDB", "Python · OpenCV", "Socket.io · Docker"],
+    color: "#1d2357",
+    ink: "#d4e157",
+    ring: "OPENCV · SOCKET.IO",
+    quotes: [["Highlight", "Aadhaar face verification"], ["Highlight", "Real-time agent chat"]],
+    description: "A secure full-stack platform connecting citizens with verified agents using AI-powered verification, OCR, real-time communication, and intelligent document processing.",
+    images: ["/govgenie_secure.png", "/govgenie_auth.png", "/govgenie_dashboard.png"],
+    tags: ["Verify", "Communicate", "Process", "Secure"],
+  },
+  {
+    title: "OpinionTrade",
+    short: ["OPINION", "TRADE"],
+    type: "Incentivized polling",
+    year: "2025",
+    stack: ["React · Node.js", "Express", "MongoDB", "REST API"],
+    color: "#a8452c",
+    ink: "#fbf3e6",
+    ring: "REGISTERED COPYRIGHT",
+    quotes: [["Recognition", "Registered copyright"], ["Highlight", "Live on the web"]],
+    description: "A secure polling platform featuring authentication, voting systems, analytics, and scalable backend architecture, with rewards that make every opinion count.",
+    images: ["/opiniontrade_polls.png", "/opiniontrade_coupons.png", "/opiniontrade_trading.png"],
+    link: "https://opiniontrade.onrender.com/",
+    linkLabel: "Live website",
+    tags: ["Poll", "Vote", "Earn", "Analyse"],
+  },
+  {
+    title: "3D Ball Trajectory",
+    short: ["3D BALL", "TRAJECTORY"],
+    type: "AI sports analytics",
+    year: "2026",
+    stack: ["Python · OpenCV", "YOLOv8 · LSTM", "PyTorch", "NumPy · SciPy"],
+    color: "#1a2744",
+    ink: "#e8f4f8",
+    ring: "BE-3 MAJOR PROJECT",
+    quotes: [["Highlight", "Monocular 3D reconstruction"], ["Recognition", "BE Major Project 2026-27"]],
+    description: "A monocular computer vision system reconstructing the 3D trajectory of a cricket ball from a single camera using YOLOv8 detection, LSTM temporal tracking, physics-constrained optimization, and stump-based geometric calibration — enabling LBW analysis without Hawk-Eye infrastructure.",
+    images: [],
+    tags: ["Detect", "Track", "Reconstruct", "Analyse"],
+  },
+]
+
+function ArrowIcon({ direction = "up-right" }) {
+  const paths = {
+    "up-right": "M7 17 17 7M8 7h9v9",
+    right: "M5 12h14M13 6l6 6-6 6",
+    up: "M12 19V5M6 11l6-6 6 6",
+    left: "M19 12H5m6 6-6-6 6-6",
+  }
+  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={paths[direction]} /></svg>
+}
+
+function ServiceIcon({ type }) {
+  const paths = {
+    code: "M8 7 3 12l5 5M16 7l5 5-5 5M14 4l-4 16",
+    cloud: "M7 18h10a4 4 0 0 0 .5-7.97A6 6 0 0 0 6.1 9.5 4.25 4.25 0 0 0 7 18Z",
+    screen: "M3 5h18v11H3zM8 20h8M12 16v4",
+    spark: "M12 3c.6 4.4 2.6 6.4 7 7-4.4.6-6.4 2.6-7 7-.6-4.4-2.6-6.4-7-7 4.4-.6 6.4-2.6 7-7Z",
+  }
+  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={paths[type]} /></svg>
+}
+
+function Spaceship({ className = "" }) {
+  return <g className={className}>
+    <path className="ship-flame" d="M-25 0-39-6-34 0-39 6Z" fill="#f0c27a" />
+    <path d="M-12-9-20-17-9-17 1-9ZM-12 9-20 17-9 17 1 9Z" fill="#17171b" stroke="#ecebe6" strokeWidth="1.2" strokeLinejoin="round" />
+    <path d="M-17-9H9C20-9 27-4 31 0 27 4 20 9 9 9H-17C-20 9-22 6-22 3V-3C-22-6-20-9-17-9Z" fill="#17171b" stroke="#ecebe6" strokeWidth="1.4" strokeLinejoin="round" />
+    <path d="M-5-9V9" stroke="rgba(236,235,230,.35)" />
+    <circle cx="16" r="3.5" fill="#f0c27a" />
+  </g>
+}
+
+// ─── Turntable Canvas (V3-matching: dawn sunrise intro + 3D stars) ─────────────
+function TurntableCanvas({ progress = 0, dark = false, playing = true, onToggle, className = "", introActive = false }) {
+  const canvasRef = useRef(null)
+  const values = useRef({ progress, dark, playing, onToggle, introActive })
+  values.current = { progress, dark, playing, onToggle, introActive }
 
   useEffect(() => {
-    if (!isInView) return
-
-    const target = parseInt(value, 10)
-    if (isNaN(target)) {
-      setCount(value)
-      return
+    const canvas = canvasRef.current
+    const ctx = canvas.getContext("2d")
+    // 3D starfield (matching V3)
+    const stars = Array.from({ length: 240 }, () => ({
+      x: Math.random(), y: Math.random(), r: Math.random() * 1.25 + .25,
+      phase: Math.random() * Math.PI * 2, depth: Math.random() * .8 + .2,
+    }))
+    let raf
+    let spin = 0
+    let theme = values.current.dark ? 0 : 1
+    let warp = 0
+    let last = 0
+    // Intro state
+    let introT0 = null
+    let introMix = 0   // 0=night, 1=day
+    let deckAlpha = 0  // turntable deck fade-in
+    let starAlpha = 0  // stars fade-in
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    const mix = (a, b, t) => a.map((value, index) => Math.round(value + (b[index] - value) * t))
+    const sm = v => v * v * (3 - 2 * v)
+    const cl = v => Math.max(0, Math.min(1, v))
+    const rounded = (x, y, w, h, r) => {
+      ctx.beginPath()
+      ctx.roundRect(x, y, w, h, r)
     }
 
-    const duration = 1500 // 1.5s
-    const startTime = performance.now()
+    // Draw dawn/sunrise glow matching V3's drawDawn
+    const drawDawn = (w, h, p) => {
+      const b = Math.sin(Math.PI * p)
+      if (b < 0.01) return
+      const cx = w * 0.5, cy = h * (1.2 - 0.5 * p), r = Math.max(w, h) * (0.55 + 0.45 * p)
+      const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, r)
+      g.addColorStop(0, `rgba(255,214,150,${0.78 * b})`)
+      g.addColorStop(0.35, `rgba(244,150,96,${0.4 * b})`)
+      g.addColorStop(0.7, `rgba(122,84,150,${0.16 * b})`)
+      g.addColorStop(1, "rgba(122,84,150,0)")
+      ctx.fillStyle = g
+      ctx.fillRect(0, 0, w, h)
+      // Horizon line
+      const hy = h * (1 - 0.1 * p)
+      const lg = ctx.createLinearGradient(0, 0, w, 0)
+      lg.addColorStop(0, "rgba(255,226,180,0)")
+      lg.addColorStop(0.5, `rgba(255,226,180,${0.9 * b})`)
+      lg.addColorStop(1, "rgba(255,226,180,0)")
+      ctx.fillStyle = lg
+      ctx.fillRect(0, hy, w, 1.2)
+    }
 
-    const animate = (now) => {
-      const elapsed = now - startTime
-      const progress = Math.min(elapsed / duration, 1)
+    const drawRecord = (cx, cy, radius, scale, light, alpha = 1) => {
+      ctx.save()
+      ctx.globalAlpha = alpha
+      ctx.shadowColor = `rgba(0,0,0,${.5 - light * .2})`
+      ctx.shadowBlur = 28
+      ctx.shadowOffsetY = 16
+      ctx.fillStyle = "#121114"
+      ctx.beginPath()
+      ctx.arc(cx, cy, radius, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.shadowColor = "transparent"
+      const step = Math.max(2, 2.2 * scale)
+      for (let r = radius * .36; r < radius * .99; r += step) {
+        ctx.strokeStyle = `rgba(255,255,255,${.035 + .02 * Math.sin(r) ** 2})`
+        ctx.lineWidth = Math.min(2, .8 + scale * .04)
+        ctx.beginPath()
+        ctx.arc(cx, cy, r, 0, Math.PI * 2)
+        ctx.stroke()
+      }
+      const sheen = ctx.createConicGradient?.(spin, cx, cy)
+      if (sheen) {
+        sheen.addColorStop(0, "rgba(255,255,255,0)")
+        sheen.addColorStop(.08, "rgba(255,255,255,.14)")
+        sheen.addColorStop(.17, "rgba(255,255,255,0)")
+        sheen.addColorStop(.55, "rgba(255,255,255,.09)")
+        sheen.addColorStop(.68, "rgba(255,255,255,0)")
+        sheen.addColorStop(1, "rgba(255,255,255,0)")
+        ctx.fillStyle = sheen
+        ctx.beginPath()
+        ctx.arc(cx, cy, radius * .98, 0, Math.PI * 2)
+        ctx.arc(cx, cy, radius * .35, 0, Math.PI * 2, true)
+        ctx.fill()
+      }
+      const label = radius * .34
+      ctx.save()
+      ctx.translate(cx, cy)
+      ctx.rotate(spin)
+      ctx.fillStyle = light > .45 ? "#c47028" : "#f0c27a"
+      ctx.beginPath()
+      ctx.arc(0, 0, label, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.fillStyle = "rgba(18,17,20,.88)"
+      ctx.textAlign = "center"
+      ctx.textBaseline = "middle"
+      ctx.font = `italic ${Math.max(10, label * .34)}px 'Instrument Serif', serif`
+      ctx.fillText("S/Y", 0, label * .3)
+      ctx.font = `500 ${Math.max(6, label * .105)}px 'IBM Plex Mono', monospace`
+      const text = "SHREEYANSH · SIDE A · 33⅓ RPM · "
+      for (let i = 0; i < text.length; i++) {
+        ctx.save()
+        ctx.rotate(i / text.length * Math.PI * 2)
+        ctx.fillText(text[i], 0, -label * .78)
+        ctx.restore()
+      }
+      ctx.fillRect(-label * .43, -label * .05, label * .86, 1)
+      ctx.restore()
+      ctx.fillStyle = "#c8c6c0"
+      ctx.beginPath()
+      ctx.arc(cx, cy, Math.max(2.5, radius * .024), 0, Math.PI * 2)
+      ctx.fill()
+      ctx.restore()
+    }
 
-      // Easing: easeOutQuad
-      const easeProgress = progress * (2 - progress)
-      const currentCount = Math.floor(easeProgress * target)
+    const draw = time => {
+      raf = requestAnimationFrame(draw)
+      if (time - last < 1000 / 60) return
+      last = time
+      const rect = canvas.getBoundingClientRect()
+      if (rect.bottom < -50 || rect.top > innerHeight + 50 || !rect.width || !rect.height) return
+      const dpr = Math.min(devicePixelRatio || 1, 2)
+      const w = rect.width
+      const h = rect.height
+      if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) {
+        canvas.width = Math.round(w * dpr)
+        canvas.height = Math.round(h * dpr)
+      }
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+      const current = values.current
+      const isIntro = current.introActive
 
-      setCount(currentCount)
-
-      if (progress < 1) {
-        requestAnimationFrame(animate)
+      // ── Intro animation step ──
+      if (isIntro) {
+        if (introT0 === null) introT0 = time
+        const e = (time - introT0) / 1000
+        const io = v => v < 0.5 ? 4 * v * v * v : 1 - Math.pow(-2 * v + 2, 3) / 2
+        starAlpha = io(cl(e / 1.0))
+        deckAlpha = io(cl((e - 0.3) / 0.8))
+        // Sunrise: starts at 1.2s, peaks around 2.9s
+        introMix = io(cl((e - 1.2) / 1.7))
+        theme += (introMix - theme) * 0.08
       } else {
-        setCount(target)
+        // After intro: smoothly target actual dark prop
+        introT0 = null
+        starAlpha = 1
+        deckAlpha = 1
+        theme += ((current.dark ? 0 : 1) - theme) * .045
+      }
+
+      const p = current.progress
+      const zoom = ease(clamp((p - .07) / .84))
+      const bg = mix([3, 3, 4], [243, 238, 228], theme)
+      const ink = mix([236, 235, 230], [31, 28, 24], theme)
+
+      ctx.fillStyle = `rgb(${bg})`
+      ctx.fillRect(0, 0, w, h)
+
+      // Dawn sunrise overlay during intro
+      if (isIntro && introMix > 0) {
+        drawDawn(w, h, introMix)
+      }
+
+      warp *= .96
+      // Stars with intro fade-in alpha
+      const sA = isIntro ? starAlpha : 1
+      for (const star of stars) {
+        const alpha = (.25 + .55 * Math.sin(time * .0015 + star.phase) ** 2) * (1 - zoom * .65) * sA
+        const drift = reduce ? 0 : (time * .000004 * star.depth + warp * .02) % 1
+        const x = ((star.x + drift) % 1) * w
+        const y = star.y * h
+        ctx.fillStyle = `rgba(${ink},${alpha})`
+        ctx.beginPath()
+        ctx.arc(x, y, star.r * (1 + warp * 3), 0, Math.PI * 2)
+        ctx.fill()
+      }
+
+      const wide = w > 860
+      const size = wide ? Math.min(w * .36, h * .64) : Math.min(w * .72, h * .32)
+      const boxH = size * .78
+      const x = wide ? w * .72 - size / 2 : (w - size) / 2
+      const y = wide ? h * .5 - boxH / 2 : h * .11
+      const radius = size * .33
+      const rx = x + size * .4
+      const ry = y + boxH / 2
+      const px = x + size * .86
+      const py = y + size * .13
+
+      // Plinth: fade with intro deckAlpha
+      const plinthAlpha = (isIntro ? deckAlpha : 1) * (1 - clamp(p / .09))
+      if (plinthAlpha > .01) {
+        ctx.save()
+        ctx.globalAlpha = plinthAlpha
+        // Slight slide-in during intro
+        if (isIntro) ctx.translate(0, (1 - deckAlpha) * 24)
+        ctx.shadowColor = "rgba(0,0,0,.35)"
+        ctx.shadowBlur = size * .08
+        ctx.shadowOffsetY = size * .03
+        rounded(x, y, size, boxH, size * .035)
+        ctx.fillStyle = theme > .5 ? "#e9e3d7" : "#18171b"
+        ctx.fill()
+        ctx.shadowColor = "transparent"
+        ctx.strokeStyle = theme > .5 ? "#cdc5b6" : "#3c3a40"
+        ctx.stroke()
+        ctx.fillStyle = theme > .5 ? "#c4c0b8" : "#46444a"
+        ctx.beginPath()
+        ctx.arc(rx, ry, radius * 1.07, 0, Math.PI * 2)
+        ctx.fill()
+        for (let i = 0; i < 72; i++) {
+          const a = i / 72 * Math.PI * 2 + spin
+          ctx.fillStyle = "rgba(255,255,255,.35)"
+          ctx.fillRect(rx + Math.cos(a) * radius * 1.035 - 1, ry + Math.sin(a) * radius * 1.035 - 1, 2, 2)
+        }
+        ctx.fillStyle = current.playing ? "#f0c27a" : `rgba(${ink},.25)`
+        ctx.beginPath()
+        ctx.arc(x + size * .06, y + boxH - size * .06, size * .009 + 1.5, 0, Math.PI * 2)
+        ctx.fill()
+        ctx.fillStyle = `rgba(${ink},.48)`
+        ctx.font = `${Math.max(8, size * .022)}px 'IBM Plex Mono', monospace`
+        ctx.textAlign = "left"
+        ctx.textBaseline = "middle"
+        ctx.fillText(current.playing ? "33 RPM · PLAYING" : "33 RPM · STOPPED", x + size * .09, y + boxH - size * .06)
+        const target = current.playing ? Math.atan2(ry - radius * .62 - py, rx + radius * .52 - px) : Math.PI / 2 - .05
+        const armLength = Math.hypot(rx + radius * .52 - px, ry - radius * .62 - py)
+        const ex = px + Math.cos(target) * armLength
+        const ey = py + Math.sin(target) * armLength
+        ctx.fillStyle = theme > .5 ? "#c4c0b8" : "#46444a"
+        ctx.beginPath()
+        ctx.arc(px, py, size * .055, 0, Math.PI * 2)
+        ctx.fill()
+        ctx.strokeStyle = theme > .5 ? "#f6f4ee" : "#8c8a90"
+        ctx.lineWidth = Math.max(2.5, size * .012)
+        ctx.lineCap = "round"
+        ctx.beginPath()
+        ctx.moveTo(px - Math.cos(target) * size * .09, py - Math.sin(target) * size * .09)
+        ctx.lineTo(ex, ey)
+        ctx.stroke()
+        ctx.save()
+        ctx.translate(ex, ey)
+        ctx.rotate(target + .5)
+        ctx.fillRect(-size * .012, -size * .02, size * .07, size * .04)
+        ctx.restore()
+        ctx.restore()
+      }
+
+      if (!reduce && current.playing) spin += .022
+
+      const endScale = Math.hypot(w, h) / Math.max(1, radius * .5)
+      const scale = Math.pow(endScale, zoom)
+      const cx = rx + (w / 2 - rx) * zoom
+      const cy = ry + (h / 2 - ry) * zoom
+      // Record fade-in during intro
+      const recordAlpha = (isIntro ? Math.max(deckAlpha, 0.1) : 1) * (1 - clamp((p - .94) / .06))
+      drawRecord(cx, cy, radius * scale, scale, theme, recordAlpha)
+
+      if (p > .78) {
+        ctx.fillStyle = `rgba(11,11,13,${clamp((p - .78) / .2)})`
+        ctx.fillRect(0, 0, w, h)
       }
     }
-
-    requestAnimationFrame(animate)
-  }, [isInView, value])
-
-  return (
-    <span ref={ref}>
-      {count}
-      {suffix}
-    </span>
-  )
-}
-
-// Technology and development work-related images
-const row1Images = [
-  "/tech_code.png",
-  "/IT.jpg",
-  "/Chip.jpg",
-  "/tech_security.png",
-  "/tech_containers.png",
-]
-
-const row2Images = [
-  "/tech_security.png",
-  "/tech_containers.png",
-  "/tech_code.png",
-  "/IT.jpg",
-  "/Chip.jpg",
-]
-
-const tripledRow1 = [...row1Images, ...row1Images, ...row1Images, ...row1Images]
-const tripledRow2 = [...row2Images, ...row2Images, ...row2Images, ...row2Images]
-
-// Accordion Item Component for "People also ask"
-function AccordionItem({ question, answer, isOpen, onToggle }) {
-  return (
-    <div className="border-b border-white/10 py-4">
-      <button 
-        onClick={onToggle}
-        className="w-full flex justify-between items-center text-left py-2 hover:text-[#B600A8] transition-colors focus:outline-none cursor-pointer"
-      >
-        <span className="text-sm sm:text-base font-medium text-[#D7E2EA]">{question}</span>
-        <ChevronDown className={`w-4 h-4 text-cyan-400 transition-transform duration-300 ${isOpen ? 'rotate-180' : 'rotate-0'}`} />
-      </button>
-      <motion.div
-        initial={false}
-        animate={{ height: isOpen ? "auto" : 0, opacity: isOpen ? 1 : 0 }}
-        transition={{ duration: 0.3 }}
-        className="overflow-hidden"
-      >
-        <div className="py-2 text-[#D7E2EA]/70 font-light text-xs sm:text-sm leading-relaxed whitespace-pre-line">
-          {answer}
-        </div>
-      </motion.div>
-    </div>
-  )
-}
-
-// Typewriter effect for Chatbot
-function TypewriterText({ text }) {
-  const [displayedText, setDisplayedText] = useState("")
-  useEffect(() => {
-    let i = 0
-    setDisplayedText("")
-    const interval = setInterval(() => {
-      setDisplayedText(text.slice(0, i + 1))
-      i++
-      if (i >= text.length) clearInterval(interval)
-    }, 15)
-    return () => clearInterval(interval)
-  }, [text])
-  return <span>{displayedText}</span>
-}
-
-// Predefined Chatbot Widget Component
-function ChatbotWidget() {
-  const [isOpen, setIsOpen] = useState(false)
-  const [selectedQuestion, setSelectedQuestion] = useState(null)
-  
-  const qaPairs = [
-    {
-      q: "What is Shreeyansh's background?",
-      a: "Shreeyansh is a Computer Engineering student at VCET, Mumbai, passionate about building intelligent, user-focused web applications and AI systems."
-    },
-    {
-      q: "What are his top skills?",
-      a: "His core tech stack includes Java (Spring Boot), JavaScript (React, Node.js, Express), Python, MongoDB, MySQL, Docker, and CI/CD pipelines."
-    },
-    {
-      q: "Any internship experience?",
-      a: "Yes! He worked as a Full Stack Intern at ESAMYAK SOFTWARE (Jun–Jul 2025), where he led a team of 10, built secure REST services, and optimized system performance by 35%."
-    },
-    {
-      q: "How can I hire him?",
-      a: "You can contact him directly via email at shreeyanshsingh07@gmail.com, connect on LinkedIn, or download his resume from the About section."
+    const pointer = event => {
+      if (event.target.closest("a,button,input,textarea")) return
+      const current = values.current
+      if (current.progress > .02) return
+      const rect = canvas.getBoundingClientRect()
+      const wide = rect.width > 860
+      const size = wide ? Math.min(rect.width * .36, rect.height * .64) : Math.min(rect.width * .72, rect.height * .32)
+      const boxH = size * .78
+      const x = wide ? rect.width * .72 - size / 2 : (rect.width - size) / 2
+      const y = wide ? rect.height * .5 - boxH / 2 : rect.height * .11
+      const lx = event.clientX - rect.left
+      const ly = event.clientY - rect.top
+      if (lx > x && lx < x + size && ly > y && ly < y + boxH) current.onToggle?.()
+      else warp = 1
     }
-  ]
+    canvas.addEventListener("pointerdown", pointer)
+    raf = requestAnimationFrame(draw)
+    return () => {
+      cancelAnimationFrame(raf)
+      canvas.removeEventListener("pointerdown", pointer)
+    }
+  }, [])
+
+  return <canvas ref={canvasRef} className={`turntable-canvas ${className}`} aria-hidden="true" />
+}
+
+function useScrollPosition() {
+  const [scrollY, setScrollY] = useState(0)
+  useEffect(() => {
+    let ticking = false
+    const update = () => {
+      setScrollY(window.scrollY)
+      ticking = false
+    }
+    const onScroll = () => {
+      if (!ticking) {
+        ticking = true
+        requestAnimationFrame(update)
+      }
+    }
+    update()
+    window.addEventListener("scroll", onScroll, { passive: true })
+    window.addEventListener("resize", onScroll)
+    return () => {
+      window.removeEventListener("scroll", onScroll)
+      window.removeEventListener("resize", onScroll)
+    }
+  }, [])
+  return scrollY
+}
+
+function progressFor(ref, scrollY) {
+  if (!ref.current) return 0
+  const top = ref.current.getBoundingClientRect().top + scrollY
+  return clamp((scrollY - top) / Math.max(1, ref.current.offsetHeight - innerHeight))
+}
+
+function Reveal({ children, className = "", delay = 0 }) {
+  const ref = useRef(null)
+  const [visible, setVisible] = useState(false)
+  useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        setVisible(true)
+        observer.disconnect()
+      }
+    }, { threshold: .18 })
+    if (ref.current) observer.observe(ref.current)
+    return () => observer.disconnect()
+  }, [])
+  return <div ref={ref} className={`reveal ${visible ? "is-visible" : ""} ${className}`} style={{ transitionDelay: `${delay}ms` }}>{children}</div>
+}
+
+function CountUp({ value, suffix, active }) {
+  const [count, setCount] = useState(0)
+  useEffect(() => {
+    if (!active) return
+    let raf
+    const start = performance.now()
+    const tick = now => {
+      const p = clamp((now - start) / 1200)
+      setCount(Math.round(value * (1 - Math.pow(1 - p, 3))))
+      if (p < 1) raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [active, value])
+  return <>{count}{suffix}</>
+}
+
+const STOP_NAMES = ["01 Who I am", "02 What I've built", "03 Off the clock"]
+
+function FlightPath({ trackRef, stageRef, h2Ref, stopsRef }) {
+  // SVG / DOM refs
+  const layerRef   = useRef(null)
+  const shipRef    = useRef(null)
+  const calloutRef = useRef(null)
+  const ghostARef  = useRef(null)
+  const glowARef   = useRef(null)
+  const coreARef   = useRef(null)
+  const baseARef   = useRef(null) // hidden sampling path A
+  const ghostBRef  = useRef(null)
+  const glowBRef   = useRef(null)
+  const coreBRef   = useRef(null)
+  const baseBRef   = useRef(null) // hidden sampling path B
+  const svgBRef    = useRef(null)
+
+  // Mutable state (no re-renders needed)
+  const dataRef = useRef({ A: null, B: null, anchor: 0, shipAng: 0, needLayout: true })
+
+  // ── helpers ──────────────────────────────────────────────────────────────
+  function samplePath(pathEl, d, step) {
+    pathEl.setAttribute("d", d)
+    const L = pathEl.getTotalLength()
+    const n = Math.max(2, Math.ceil(L / step))
+    const pts = []
+    for (let i = 0; i <= n; i++) {
+      const s = (i / n) * L
+      const p = pathEl.getPointAtLength(s)
+      pts.push({ x: p.x, y: p.y, s })
+    }
+    return { pts, L, n }
+  }
+
+  function wavePath(base, L) {
+    const n = base.length - 1
+    const out = []
+    for (let i = 0; i <= n; i++) {
+      const p = base[i]
+      const a = base[Math.max(0, i - 1)]
+      const b = base[Math.min(n, i + 1)]
+      const dx = b.x - a.x, dy = b.y - a.y, l = Math.hypot(dx, dy) || 1
+      const nx = -dy / l, ny = dx / l
+      const env = Math.max(0, Math.min(1, p.s / 140, (L - p.s) / 140))
+      const amp = (1.2 + 6 * (0.5 + 0.5 * Math.sin(p.s * 0.009))) * env
+      const off = amp * Math.sin(p.s * 2 * Math.PI / 64)
+      out.push({ x: p.x + nx * off, y: p.y + ny * off })
+    }
+    return out
+  }
+
+  function dOf(pts) {
+    return "M" + pts.map(p => p.x.toFixed(1) + " " + p.y.toFixed(1)).join(" L")
+  }
+
+  function atPath(P, fi) {
+    const i = Math.max(0, Math.min(P.n, Math.floor(fi)))
+    const j = Math.min(P.n, i + 1)
+    const f = fi - i
+    const a = P.pts[i], b = P.pts[j]
+    return { x: a.x + (b.x - a.x) * f, y: a.y + (b.y - a.y) * f, i }
+  }
+
+  function angAt(P, i) {
+    const a = P.base[Math.max(0, i - 3)]
+    const b = P.base[Math.min(P.n, i + 3)]
+    return Math.atan2(b.y - a.y, b.x - a.x)
+  }
+
+  function layout() {
+    const d = dataRef.current
+    const stage = stageRef.current
+    const h2    = h2Ref.current
+    const stops = stopsRef.current
+    const svgB  = svgBRef.current
+    const baseA = baseARef.current
+    const baseB = baseBRef.current
+    if (!stage || !h2 || !stops || !svgB || !baseA || !baseB) return
+
+    const vw = stage.clientWidth, vh = stage.clientHeight
+    if (!vw || !vh) return
+    d.needLayout = false
+
+    const anchor = vh * 0.6
+    d.anchor = anchor
+
+    // Path A: swoop in, trace under h2 "About me", loop, descend to anchor
+    const sr = stage.getBoundingClientRect()
+    const r  = h2.getBoundingClientRect()
+    const hL = r.left - sr.left
+    const hR = r.right - sr.left
+    const wy = r.bottom - sr.top + 10
+    const xB = vw / 2
+    const mid  = Math.max(wy + 40, (wy + anchor) / 2)
+    const loop = Math.max(24, Math.min(160, vw - hR - 16))
+    const dA =
+      `M-90 ${vh * 0.08} C${vw * 0.12} ${vh * 0.02}, ${hL - 170} ${wy - 140}, ${hL - 30} ${wy}` +
+      ` L${hR + 30} ${wy}` +
+      ` C${hR + 30 + loop} ${wy}, ${hR + 30 + loop} ${mid}, ${hR + 10} ${mid}` +
+      ` C${hR + 10 - (hR - xB) * 0.6} ${mid}, ${xB} ${mid + (anchor - mid) * 0.3}, ${xB} ${anchor}`
+
+    const SA = samplePath(baseA, dA, 4)
+    const waveA = wavePath(SA.pts, SA.L)
+    const wdA = dOf(waveA)
+    ghostARef.current?.setAttribute("d", dA)
+    glowARef.current?.setAttribute("d", wdA)
+    coreARef.current?.setAttribute("d", wdA)
+
+    // compute h2-reveal fractions per point
+    let mx = 0
+    const rev = SA.pts.map(p => (mx = Math.max(mx, Math.max(0, Math.min(1, (p.x - hL) / Math.max(1, hR - hL))))))
+    d.A = { base: SA.pts, pts: waveA, n: SA.n, rev }
+
+    // Path B: anchor → each data-stop card → park at right edge
+    const off  = vh - anchor
+    const prR  = stops.getBoundingClientRect()
+    const stopEls = Array.from(stops.querySelectorAll("[data-stop]")).map(el => {
+      const b = el.getBoundingClientRect()
+      return { x: b.left + b.width / 2 - prR.left, y: b.top + b.height / 2 - prR.top + off }
+    })
+    let dB = `M${xB} 0`, px = xB, py = 0
+    for (const sp of stopEls) {
+      const my = (py + sp.y) / 2
+      dB += ` C${px} ${my}, ${sp.x} ${my}, ${sp.x} ${sp.y}`
+      px = sp.x; py = sp.y
+    }
+    const ex = stops.querySelector("[data-exit]")
+    const exitY = ex ? Math.max(py + 160, ex.getBoundingClientRect().top - prR.top + off - 70) : py + 360
+    const parkX = vw - Math.max(56, Math.min(90, vw * 0.05))
+    dB += ` C${px} ${py + (exitY - py) * 0.55}, ${px + (parkX - px) * 0.45} ${exitY - 50}, ${parkX} ${exitY}`
+
+    svgB.style.top    = -off + "px"
+    svgB.style.height = (stops.offsetHeight + off) + "px"
+
+    const SB = samplePath(baseB, dB, 4)
+    const waveB = wavePath(SB.pts, SB.L)
+    const wdB = dOf(waveB)
+    ghostBRef.current?.setAttribute("d", dB)
+    glowBRef.current?.setAttribute("d", wdB)
+    coreBRef.current?.setAttribute("d", wdB)
+    d.B = { base: SB.pts, pts: waveB, n: SB.n, stops: stopEls, off }
+  }
+
+  useEffect(() => {
+    const d = dataRef.current
+    let raf
+
+    function frame() {
+      raf = requestAnimationFrame(frame)
+
+      if (d.needLayout) layout()
+      const A = d.A, B = d.B
+      const layer   = layerRef.current
+      const stage   = stageRef.current
+      const h2El    = h2Ref.current
+      const stopsEl = stopsRef.current
+      const trackEl = trackRef.current
+      const ship    = shipRef.current
+      const co      = calloutRef.current
+      if (!A || !B || !layer || !stage || !h2El || !stopsEl || !trackEl || !ship || !co) return
+
+      const cl = v => Math.max(0, Math.min(1, v))
+      const vh = window.innerHeight
+      const layerR = layer.getBoundingClientRect()
+      const trackR = trackEl.getBoundingClientRect()
+
+      // pA: 0 → 1 as the sticky about-intro scrolls through its 225vh track
+      const pA = cl(-trackR.top / Math.max(1, trackEl.offsetHeight - vh))
+
+      let sx, sy, ang, call, fracA, fracB = 0, active = -1
+
+      if (pA < 1) {
+        // Phase A — ship travels path A, writing the h2 title
+        const fi  = pA * A.n
+        const p   = atPath(A, fi)
+        const stR = stage.getBoundingClientRect()
+        sx  = p.x + stR.left - layerR.left
+        sy  = p.y + stR.top  - layerR.top
+        ang = angAt(A, p.i)
+        fracA = pA
+        const rv = A.rev[p.i]
+        h2El.style.clipPath = `inset(-30% ${((1 - rv) * 100).toFixed(2)}% -40% -4%)`
+        const subEl = h2El.nextElementSibling
+        if (subEl) subEl.style.opacity = String(cl((rv - 0.85) / 0.15))
+        call = rv < 0.999 ? "SY-1 · Writing the title" : "SY-1 · Plotting the course"
+      } else {
+        // Phase B — ship travels path B through each about-stop card
+        fracA = 1
+        h2El.style.clipPath = "none"
+        const subEl = h2El.nextElementSibling
+        if (subEl) subEl.style.opacity = "1"
+        const svgB  = svgBRef.current
+        if (!svgB) return
+        const bR = svgB.getBoundingClientRect()
+        const ty = d.anchor - bR.top   // y within svgB that corresponds to the viewport anchor row
+        let lo = 0, hi = B.n
+        while (lo < hi) { const md = (lo + hi) >> 1; if (B.base[md].y < ty) lo = md + 1; else hi = md }
+        let fi = lo
+        if (lo > 0 && lo <= B.n) {
+          const a = B.base[lo - 1], b = B.base[lo]
+          fi = lo - 1 + cl((ty - a.y) / Math.max(0.001, b.y - a.y))
+        }
+        fi = Math.max(0, Math.min(B.n, fi))
+        const p  = atPath(B, fi)
+        const by = B.base[Math.min(B.n, Math.round(fi))].y
+        sx  = p.x + bR.left - layerR.left
+        sy  = p.y + bR.top  - layerR.top
+        ang = angAt(B, p.i)
+        fracB = fi / B.n
+        B.stops.forEach((s, k) => { if (by >= s.y - 3) active = k })
+        const next = active + 1
+        call = next < STOP_NAMES.length
+          ? "Next stop · " + STOP_NAMES[next]
+          : (fracB > 0.995 ? "SY-1 · Parked · see you at Contact" : "SY-1 · Heading to the edge")
+      }
+
+      // dash offsets
+      const dash = v => String((1000 * (1 - v)).toFixed(1))
+      glowARef.current?.setAttribute("stroke-dashoffset", dash(fracA))
+      coreARef.current?.setAttribute("stroke-dashoffset", dash(fracA))
+      glowBRef.current?.setAttribute("stroke-dashoffset", dash(fracB))
+      coreBRef.current?.setAttribute("stroke-dashoffset", dash(fracB))
+
+      // smooth ship angle (inertia)
+      let da = ang - d.shipAng
+      while (da > Math.PI)  da -= 2 * Math.PI
+      while (da < -Math.PI) da += 2 * Math.PI
+      d.shipAng += da * 0.2
+
+      // visibility check
+      const visible =
+        layerR.bottom > 0 && layerR.top < window.innerHeight &&
+        sx > -60 && sx < (stage.clientWidth + 60) &&
+        sy > -40 && sy < window.innerHeight + 40
+
+      ship.setAttribute("transform", `translate(${sx.toFixed(1)} ${sy.toFixed(1)}) rotate(${(d.shipAng * 180 / Math.PI).toFixed(1)})`)
+      ship.style.opacity = visible ? "1" : "0"
+
+      // callout position
+      const cw  = co.offsetWidth || 200
+      const vw2 = stage.clientWidth
+      const cxp = Math.max(12, Math.min(vw2 - cw - 12, sx + 30))
+      const cyp = Math.max(12, sy - 48)
+      co.style.transform = `translate(${cxp.toFixed(1)}px, ${cyp.toFixed(1)}px)`
+      co.style.opacity   = visible && sx > 20 ? "1" : "0"
+      co.textContent     = call || ""
+    }
+
+    // Trigger layout rebuild on resize
+    const ro = new ResizeObserver(() => { d.needLayout = true })
+    if (stageRef.current) ro.observe(stageRef.current)
+    if (stopsRef.current) ro.observe(stopsRef.current)
+
+    raf = requestAnimationFrame(frame)
+    return () => {
+      cancelAnimationFrame(raf)
+      ro.disconnect()
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3 max-w-[360px] w-[90vw]">
-      {isOpen ? (
-        <>
-          {/* Chat Window */}
-          <div className="bg-[#121214]/95 border border-white/10 rounded-3xl shadow-2xl p-5 w-full backdrop-blur-md flex flex-col gap-4 text-left">
-            {/* Header */}
-            <div className="flex items-center gap-3 border-b border-white/5 pb-3">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#7621B0] to-[#B600A8] flex items-center justify-center shadow-md">
-                <Sparkles className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <h4 className="font-bold text-white uppercase tracking-wide text-sm">Ask about Shreeyansh</h4>
-                <p className="text-xs text-[#D7E2EA]/50 font-light">Pick a question below</p>
-              </div>
-            </div>
-
-            {/* Questions list */}
-            <div className="flex flex-col gap-2">
-              {qaPairs.map((pair, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setSelectedQuestion(idx)}
-                  className={`text-left text-xs p-3 rounded-xl border text-white font-medium transition-all cursor-pointer ${
-                    selectedQuestion === idx
-                      ? "border-[#B600A8] bg-[#B600A8]/10"
-                      : "border-white/5 bg-white/5 hover:bg-white/10 hover:border-white/10"
-                  }`}
-                >
-                  {pair.q}
-                </button>
-              ))}
-            </div>
-
-            {/* Response Area */}
-            {selectedQuestion !== null && (
-              <div className="bg-cyan-500/5 border border-cyan-500/20 p-3.5 rounded-2xl text-xs sm:text-sm font-light leading-relaxed text-cyan-400">
-                <p className="font-bold uppercase tracking-wider text-[10px] text-cyan-400/60 mb-1">Response:</p>
-                <TypewriterText text={qaPairs[selectedQuestion].a} />
-              </div>
-            )}
-          </div>
-
-          {/* Close Button */}
-          <button
-            onClick={() => {
-              setIsOpen(false)
-              setSelectedQuestion(null)
-            }}
-            className="w-12 h-12 rounded-full bg-white text-black hover:bg-slate-200 shadow-xl flex items-center justify-center transition-all cursor-pointer font-bold focus:outline-none"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </>
-      ) : (
-        /* Floating Action Button (FAB) */
-        <button
-          onClick={() => setIsOpen(true)}
-          className="w-14 h-14 rounded-full bg-gradient-to-tr from-[#7621B0] to-[#B600A8] hover:scale-110 active:scale-95 text-white shadow-2xl flex items-center justify-center transition-all animate-bounce relative cursor-pointer"
-          style={{ animationDuration: '3s' }}
-        >
-          <span className="absolute -inset-1 rounded-full bg-[#B600A8]/30 blur-sm -z-10" />
-          <Bot className="w-6 h-6 text-white" />
-        </button>
-      )}
+    <div ref={layerRef} className="flight-layer" aria-hidden="true">
+      {/* Phase A SVG — absolutely fills the sticky about-intro stage */}
+      <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%", overflow: "visible" }}>
+        <path ref={baseARef}  style={{ display: "none" }} />
+        <path ref={ghostARef} className="flight-ghost" />
+        <path ref={glowARef}  className="flight-glow"  pathLength="1000" strokeDashoffset="1000" />
+        <path ref={coreARef}  className="flight-core"  pathLength="1000" strokeDashoffset="1000" />
+        <g ref={shipRef} className="flight-ship"><Spaceship /></g>
+      </svg>
+      {/* Phase B SVG — absolutely positioned relative to .about-stops, extends upward by `off` px */}
+      <svg ref={svgBRef} style={{ position: "absolute", left: 0, width: "100%", overflow: "visible", top: 0, pointerEvents: "none" }}>
+        <path ref={baseBRef}  style={{ display: "none" }} />
+        <path ref={ghostBRef} className="flight-ghost" />
+        <path ref={glowBRef}  className="flight-glow"  pathLength="1000" strokeDashoffset="1000" />
+        <path ref={coreBRef}  className="flight-core"  pathLength="1000" strokeDashoffset="1000" />
+      </svg>
+      {/* Callout bubble — absolutely positioned to follow ship */}
+      <div ref={calloutRef} className="flight-callout" style={{ position: "fixed", top: 0, left: 0, opacity: 0 }}><i /></div>
     </div>
   )
+}
+
+function ProjectDisc({ project, index, activeFloat, visible, onOpen, onSelect, onDragStart, onDragMove, onDragEnd }) {
+  const distance = index - activeFloat
+  const opacity = visible * clamp(1 - Math.max(0, Math.abs(distance) - 1.8) / .8)
+  const ringId = `project-ring-${index}`
+  return <button
+    type="button"
+    className={`project-disc ${Math.abs(distance) < .5 ? "is-active" : ""}`}
+    aria-label={`${Math.abs(distance) < .5 ? "Open" : "Select"} ${project.title}`}
+    onClick={event => {
+      if (event.currentTarget.dataset.dragged === "true") {
+        event.preventDefault()
+        event.currentTarget.dataset.dragged = "false"
+        return
+      }
+      if (Math.abs(distance) < .5) onOpen()
+      else onSelect()
+    }}
+    onPointerDown={event => onDragStart(event, index)}
+    onPointerMove={onDragMove}
+    onPointerUp={onDragEnd}
+    onPointerCancel={onDragEnd}
+    style={{
+      "--disc-color": project.color,
+      "--disc-ink": project.ink,
+      "--dx": `${distance * 28}vw`,
+      "--dxm": `${distance * 65}vw`,
+      "--dy": `${Math.abs(distance) * 7}vh`,
+      "--disc-scale": Math.max(.55, 1 - Math.abs(distance) * .13),
+      "--disc-rotate": `${-6 + distance * -3}deg`,
+      opacity,
+      pointerEvents: opacity > .2 ? "auto" : "none",
+      zIndex: 20 - index,
+    }}
+  >
+    <span className="disc-face">
+      <svg className="disc-art" viewBox="0 0 400 400" aria-hidden="true">
+        <defs><path id={ringId} d="M200 200m-176 0a176 176 0 1 1 352 0a176 176 0 1 1-352 0" /></defs>
+        <text className="disc-ring-text" fontFamily="IBM Plex Mono" fontSize="9.5" letterSpacing="3.2" fill={project.ink} opacity=".65">
+          <textPath href={`#${ringId}`}>SHREEYANSH SINGH · TRACK 04.{index + 1} · {project.title.toUpperCase()} · {project.ring} · </textPath>
+        </text>
+        {index === 0 && <>
+          <text x="200" y="112" textAnchor="middle" fontFamily="IBM Plex Mono" fontSize="15" letterSpacing="5" fill={project.ink}>AI WEARABLE</text>
+          <path d="M35 202h13l8-9 9 21 10-37 10 48 11-63 10 75 11-89 11 105 11-119 11 133 11-145 11 157 11-133 11 119 11-105 11 89 11-75 11 63 11-48 11 37 11-21 11 9h16" fill="none" stroke={project.ink} strokeWidth="2.6" strokeLinejoin="round" />
+          <text x="200" y="322" textAnchor="middle" fontFamily="Anton" fontSize="82" fill={project.ink}>PENDANT</text>
+          <text x="200" y="356" textAnchor="middle" fontFamily="IBM Plex Mono" fontSize="11" letterSpacing="4" fill={project.ink}>S/Y · 04.1</text>
+        </>}
+        {index === 1 && <>
+          <g transform="rotate(-10 200 200)"><text x="54" y="176" fontFamily="Anton" fontSize="128" fill={project.ink}>GOV</text><text x="38" y="318" fontFamily="Anton" fontSize="128" fill={project.ink}>GENIE</text></g>
+          <text x="200" y="360" textAnchor="middle" fontFamily="IBM Plex Mono" fontSize="11" letterSpacing="4" fill={project.ink}>AI PORTAL · 04.2</text>
+        </>}
+        {index === 2 && <>
+          <text x="200" y="150" textAnchor="middle" fontFamily="Anton" fontSize="70" letterSpacing="2" fill={project.ink}>OPINION</text>
+          <path d="M66 262 112 244 152 256 196 214 240 226 292 180 330 188" fill="none" stroke={project.ink} strokeWidth="4" />
+          <path d="m330 176 22 10-20 14" fill={project.ink} />
+          <text x="200" y="334" textAnchor="middle" fontFamily="Anton" fontSize="104" fill={project.ink}>TRADE</text>
+        </>}
+        {index === 3 && <>
+          <text x="200" y="104" textAnchor="middle" fontFamily="IBM Plex Mono" fontSize="12" letterSpacing="5" fill={project.ink} opacity=".8">BE-3</text>
+          <text x="200" y="142" textAnchor="middle" fontFamily="Anton" fontSize="52" letterSpacing="1" fill={project.ink}>3D BALL</text>
+          <path d="M80 190 Q200 150 320 190 Q200 230 80 190Z" fill={project.ink} opacity=".18"/>
+          <circle cx="200" cy="200" r="38" fill="none" stroke={project.ink} strokeWidth="1.8" opacity=".5"/>
+          <circle cx="200" cy="200" r="22" fill="none" stroke={project.ink} strokeWidth="1.2" opacity=".4"/>
+          <path d="M162 200 Q180 170 200 200 Q220 230 238 200" fill="none" stroke={project.ink} strokeWidth="2.4" strokeLinecap="round"/>
+          <path d="M236 194 l6 6 -8 2" fill={project.ink}/>
+          <text x="200" y="284" textAnchor="middle" fontFamily="Anton" fontSize="42" letterSpacing="1" fill={project.ink}>TRAJECTORY</text>
+          <text x="200" y="316" textAnchor="middle" fontFamily="IBM Plex Mono" fontSize="9.5" letterSpacing="4" fill={project.ink} opacity=".7">LSTM · YOLO · MONOCULAR</text>
+          <text x="200" y="356" textAnchor="middle" fontFamily="IBM Plex Mono" fontSize="9" letterSpacing="3" fill={project.ink} opacity=".55">VCET 2026-27 · 04.4</text>
+        </>}
+      </svg>
+      <span className="disc-sheen" />
+      <span className="disc-rim" />
+      <span className="disc-hub" />
+    </span>
+    <svg className="disc-scribble" viewBox="0 0 100 100" aria-hidden="true"><path d="M50 5C77 3 97 21 96 49S76 96 48 95 4 76 5 48 26 5 53 6 93 26 91 53 69 94 43 91 8 68 10 42 34 9 60 12" fill="none" stroke="currentColor" strokeWidth=".45" pathLength="1" /></svg>
+  </button>
+}
+
+function ProjectDetail({ index, onClose, onNext }) {
+  const project = projects[index]
+  const closeRef = useRef(onClose)
+  closeRef.current = onClose
+  useEffect(() => {
+    const previous = document.body.style.overflow
+    document.body.style.overflow = "hidden"
+    const onKey = event => {
+      if (event.key === "Escape") closeRef.current()
+    }
+    window.addEventListener("keydown", onKey)
+    return () => {
+      document.body.style.overflow = previous
+      window.removeEventListener("keydown", onKey)
+    }
+  }, [])
+  return <div className="project-detail" role="dialog" aria-modal="true" aria-label={project.title}>
+    <header className="detail-nav"><button type="button" onClick={onClose}><ArrowIcon direction="left" /> All projects</button><span><i>/</i>S/Y</span><button type="button" className="detail-close" onClick={onClose} aria-label="Close project">×</button></header>
+    <main className="detail-main">
+      <div className="detail-index">0{index + 1} / 0{projects.length}</div>
+      <div className="detail-title-row"><h1>{project.title}</h1><p>Built by <strong>Shreeyansh Singh</strong><span>Type</span>{project.type}</p></div>
+      <div className="detail-meta"><div><span>Year</span><strong>{project.year}</strong></div><div><span>Type</span><strong>{project.type}</strong></div><div><span>Built with</span><strong>{project.stack.join(" · ")}</strong></div></div>
+      <section className="detail-visual">
+        <span className="cross cross-a">+</span><span className="cross cross-b">+</span><span className="cross cross-c">+</span><span className="cross cross-d">+</span>
+        {project.link && <a href={project.link} target="_blank" rel="noreferrer" className="detail-link">{project.linkLabel}<ArrowIcon /></a>}
+        {project.images.length ? <div className="detail-screens">{project.images.map((image, imageIndex) => <img key={image} src={image} alt={`${project.title} preview ${imageIndex + 1}`} />)}</div> : <div className="detail-coming"><span>SY-0{index + 1}</span><strong>Coming soon</strong></div>}
+      </section>
+      <section className="detail-story"><div>{(project.tags || ["Build", "Ship", "Iterate", "Learn"]).map(t => <span key={t}>{t}</span>)}</div><p>{project.description}</p></section>
+      <button type="button" className="detail-next" onClick={onNext}><span>Next project · Keep scrolling</span><strong>{projects[(index + 1) % projects.length].title}</strong><ArrowIcon direction="right" /></button>
+    </main>
+  </div>
 }
 
 export default function App() {
-  const [currentView, setCurrentView] = useState("landing_page")
-  const [loading, setLoading] = useState(false)
-  const marqueeRef = useRef(null)
-  const [marqueeOffset, setMarqueeOffset] = useState(0)
+  const scrollY = useScrollPosition()
+  const heroRef = useRef(null)
+  const aboutRef = useRef(null)
+  const showcaseRef = useRef(null)
+  const contactRef = useRef(null)
+  const [playing, setPlaying] = useState(true)
+  const [intro, setIntro] = useState(true)
+  const [wordIndex, setWordIndex] = useState(0)
+  const [time, setTime] = useState("")
+  const [navHover, setNavHover] = useState(false)
+  const [detailIndex, setDetailIndex] = useState(null)
+  const [formStatus, setFormStatus] = useState("Lands in his inbox via your mail app.")
+  const dragRef = useRef(null)
+  const [isLoading, setIsLoading] = useState(true)
 
-  const [formData, setFormData] = useState({ name: "", email: "", message: "" })
-  const [formStatus, setFormStatus] = useState("")
+  // Refs for V3-style staggered reveal (Web Animations API)
+  const refNav = useRef(null)
+  const refStatus = useRef(null)
+  const refJp = useRef(null)
+  const refEyebrow = useRef(null)
+  const refH1 = useRef(null)
+  const refCta = useRef(null)
+  const refFoot = useRef(null)
 
-  const [activeAccordionIdx, setActiveAccordionIdx] = useState(null)
-  const [runTour, setRunTour] = useState(false)
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  // Refs for V3-exact FlightPath (rocket animation in About section)
+  const aboutTrackRef = useRef(null)  // the .about-intro-track div (225vh scroll container)
+  const aboutStageRef = useRef(null)  // the sticky .about-intro div
+  const aboutH2Ref    = useRef(null)  // the h2 "About me"
+  const aboutStopsRef = useRef(null)  // the .about-stops container
 
-  const searchSectionRef = useRef(null)
+  const heroProgress = progressFor(heroRef, scrollY)
+  const aboutProgress = progressFor(aboutRef, scrollY)
+  const showcaseProgress = progressFor(showcaseRef, scrollY)
+  const contactProgress = progressFor(contactRef, scrollY)
+  const highlightOut = ease(clamp((showcaseProgress - .1) / .08))
+  const serviceIn = ease(clamp((showcaseProgress - .18) / .08))
+  const serviceOut = ease(clamp((showcaseProgress - .4) / .08))
+  const projectIn = ease(clamp((showcaseProgress - .44) / .08))
+  const projectProgress = clamp((showcaseProgress - .5) / .44)
+  const activeFloat = projectProgress * (projects.length - 1)
+  const activeIndex = Math.round(activeFloat)
+  const activeProject = projects[activeIndex]
+  const night = ease(clamp((showcaseProgress - .95) / .05))
 
+  // Handle loading screen completion
   useEffect(() => {
-    if (currentView !== "portfolio") {
-      setRunTour(false)
-      return
+    const loadingTimer = setTimeout(() => {
+      setIsLoading(false)
+    }, 4500) // Match LoadingScreen completion time
+
+    return () => clearTimeout(loadingTimer)
+  }, [])
+
+  // ── V3-style intro: staggered Web Animations API reveal ──────────────────────
+  useEffect(() => {
+    if (isLoading) return // Don't start intro animations until loading is done
+
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    const k = 1 // intro speed factor (1 = normal)
+
+    // Items to animate in with their delay times (seconds), matching V3's reveal()
+    const items = [
+      [refNav.current,      0.15, ""],
+      [refStatus.current,   0.25, ""],
+      [refJp.current,       0.30, "translateY(-50%) "],
+      [refEyebrow.current,  0.35, ""],
+    ]
+
+    // H1 words - each word gets a slight stagger
+    const h1El = refH1.current
+    if (h1El) {
+      const wordEls = h1El.querySelectorAll(".hero-word")
+      wordEls.forEach((w, i) => items.push([w, 2.45 + i * 0.08, ""]))
     }
 
-    const timer = setTimeout(() => {
-      const element = document.getElementById("resume-download-btn")
-      if (!element) return
+    items.push([refCta.current,  1.0,  ""])
+    items.push([refFoot.current, 1.15, ""])
 
-      const observer = new IntersectionObserver(
-        ([entry]) => {
-          if (entry.isIntersecting) {
-            const hasSeen = localStorage.getItem("hasSeenResumeTour")
-            if (!hasSeen) {
-              setRunTour(true)
-              observer.disconnect()
-            }
-          }
-        },
-        { threshold: 0.1 }
-      );
-
-      observer.observe(element)
-    }, 500)
-
-    return () => clearTimeout(timer)
-  }, [currentView])
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-  }
-
-  const handleFormSubmit = (e) => {
-    e.preventDefault()
-    if (!formData.name || !formData.email || !formData.message) {
-      setFormStatus("error")
-      return
-    }
-    setFormStatus("sending")
-    const mailtoLink = `mailto:shreeyanshsingh07@gmail.com?subject=Portfolio Contact from ${encodeURIComponent(formData.name)}&body=Name: ${encodeURIComponent(formData.name)}%0D%0AEmail: ${encodeURIComponent(formData.email)}%0D%0AMessage:%0D%0A${encodeURIComponent(formData.message)}`
-    window.location.href = mailtoLink
-    setFormStatus("success")
-    setFormData({ name: "", email: "", message: "" })
-    setTimeout(() => {
-      setFormStatus("")
-    }, 5000)
-  }
-
-
-
-  const triggerNavigation = (targetView, targetSection = null) => {
-    if (targetView === "portfolio") {
-      // Start background preloading of the 3D model during the transition screen
-      preload3DModel()
-    }
-    setLoading(true)
-    setTimeout(() => {
-      setCurrentView(targetView)
-      setLoading(false)
-      if (targetSection) {
-        setTimeout(() => {
-          scrollToSection(targetSection)
-        }, 100)
+    const anims = []
+    for (const [el, at, base] of items) {
+      if (!el || !el.animate) continue
+      if (reduce) {
+        // No animation, just show immediately
+        el.style.opacity = "1"
+        continue
       }
-    }, 2200)
-  }
-
-  // Passive scroll listener for marquee offset calculation
-  useEffect(() => {
-    if (currentView !== "portfolio") return
-
-    const handleScroll = () => {
-      if (!marqueeRef.current) return
-      const rect = marqueeRef.current.getBoundingClientRect()
-      // get section position relative to page
-      const sectionTop = rect.top + window.scrollY
-      const offset = (window.scrollY - sectionTop + window.innerHeight) * 0.3
-      setMarqueeOffset(offset)
+      const a = el.animate(
+        [
+          { opacity: 0, transform: base + "translateY(18px)", filter: "blur(8px)" },
+          { opacity: 1, transform: base + "translateY(0px)",  filter: "blur(0px)"  },
+        ],
+        {
+          duration: 1000 * Math.sqrt(k),
+          delay: at * 1000 * k,
+          easing: "cubic-bezier(.2,.7,.2,1)",
+          fill: "both",
+        }
+      )
+      a.onfinish = () => { try { a.cancel() } catch (e) {} }
+      anims.push(a)
     }
 
-    window.addEventListener("scroll", handleScroll, { passive: true })
-    handleScroll() // Trigger initial render position
-    return () => window.removeEventListener("scroll", handleScroll)
-  }, [currentView])
+    // Auto-end intro at ~2s (after loading screen completes)
+    const timer = setTimeout(() => {
+      setIntro(false)
+      anims.forEach(a => { try { a.finish() } catch (e) {} })
+    }, 2000)
 
-  const scrollToSection = (id) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" })
+    const skip = () => {
+      clearTimeout(timer)
+      setIntro(false)
+      anims.forEach(a => { try { a.finish() } catch (e) {} })
+    }
+    window.addEventListener("wheel", skip, { passive: true, once: true })
+    window.addEventListener("touchstart", skip, { passive: true, once: true })
+
+    return () => {
+      clearTimeout(timer)
+      window.removeEventListener("wheel", skip)
+      window.removeEventListener("touchstart", skip)
+      anims.forEach(a => { try { a.cancel() } catch (e) {} })
+    }
+  }, [isLoading])
+
+  useEffect(() => {
+    const timer = setInterval(() => setWordIndex(index => (index + 1) % words.length), 2800)
+    return () => clearInterval(timer)
+  }, [])
+
+  useEffect(() => {
+    const update = () => setTime(new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }))
+    update()
+    const timer = setInterval(update, 30000)
+    return () => clearInterval(timer)
+  }, [])
+
+  const goTo = (ref, progress = 0) => {
+    if (!ref.current) return
+    const top = ref.current.getBoundingClientRect().top + window.scrollY
+    window.scrollTo({ top: top + (ref.current.offsetHeight - innerHeight) * progress, behavior: "smooth" })
   }
 
-  if (loading) {
-    return <LoadingScreen />
+  const goProject = index => {
+    if (!showcaseRef.current) return
+    const top = showcaseRef.current.getBoundingClientRect().top + window.scrollY
+    const progress = .5 + index / (projects.length - 1) * .44
+    window.scrollTo({ top: top + (showcaseRef.current.offsetHeight - innerHeight) * progress, behavior: "smooth" })
   }
 
-  if (currentView === "landing_page") {
-    return <FoldcraftPage onNavigate={(sec) => triggerNavigation("portfolio", sec)} />
+  const activeNav = scrollY >= (contactRef.current?.getBoundingClientRect().top + scrollY || Infinity) - innerHeight * .4
+    ? "contact"
+    : showcaseProgress >= .44 ? "projects" : showcaseProgress >= .12 ? "services" : aboutProgress > 0 || scrollY > innerHeight * 2 ? "about" : "home"
+  const collapsed = scrollY > innerHeight * .35 && !navHover
+
+  const sendSignal = event => {
+    event.preventDefault()
+    const data = new FormData(event.currentTarget)
+    const name = String(data.get("name") || "").trim()
+    const email = String(data.get("email") || "").trim()
+    const message = String(data.get("message") || "").trim()
+    if (!email || !message) {
+      setFormStatus("Add your email and a message first.")
+      return
+    }
+    setFormStatus("Signal sent. Opening your mail app…")
+    const subject = encodeURIComponent(`Signal from ${name || "your portfolio"}`)
+    const body = encodeURIComponent(`${message}\n\n— ${name} (${email})`)
+    window.location.href = `mailto:shreeyanshsingh07@gmail.com?subject=${subject}&body=${body}`
   }
 
-  return (
-    <div className="min-h-screen bg-[#0C0C0C] font-kanit text-[#D7E2EA] overflow-x-clip selection:bg-[#B600A8]/30 selection:text-white">
-
-      {/* React Joyride Onboarding */}
-      {runTour && (
-        <Joyride
-          steps={[
-            {
-              target: "#resume-download-btn",
-              content: "Click here to download Shreeyansh's resume.",
-              placement: "left",
-              disableBeacon: true,
-              skipBeacon: true,
-              disableScrolling: true,
-            }
-          ]}
-          run={runTour}
-          continuous={false}
-          showSkipButton={true}
-          showCloseButton={true}
-          locale={{ last: "Got it" }}
-          styles={{
-            options: {
-              arrowColor: "#ffffff",
-              backgroundColor: "#ffffff",
-              overlayColor: "rgba(0, 0, 0, 0.5)",
-              primaryColor: "#2563eb", // blue button
-              textColor: "#333333",
-              zIndex: 1000,
-            }
-          }}
-          callback={(data) => {
-            const { status } = data;
-            if (["finished", "skipped"].includes(status)) {
-              localStorage.setItem("hasSeenResumeTour", "true");
-              setRunTour(false);
-            }
-          }}
-          debug={true}
-        />
-      )}
-
-      {/* 3D Scroll-Triggered Storytelling Scene */}
-      <Scroll3DScene />
-
-      {/* 1. HERO SECTION */}
-      <section className="relative h-screen w-full flex flex-col justify-between overflow-hidden z-20 pb-7 sm:pb-8 md:pb-10">
-
-        {/* Navbar */}
-        <FadeIn
-          as="nav"
-          y={-20}
-          delay={0}
-          className="relative flex justify-between items-center px-6 md:px-10 pt-6 md:pt-8 w-full z-50"
-        >
-          {/* Mobile Brand Name / Logo */}
-          <div className="md:hidden flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-[#B600A8] animate-pulse" />
-            <span className="font-geist text-xs font-bold tracking-widest uppercase text-white">
-              SHREEYANSH
-            </span>
-          </div>
-
-          {/* Desktop Links (hidden on mobile) */}
-          <div className="hidden md:flex gap-6 sm:gap-10 md:gap-12 justify-start items-center">
-            {["About", "Services", "Projects", "Contact"].map((link) => (
-              <button
-                key={link}
-                onClick={() => {
-                  scrollToSection(link.toLowerCase())
-                }}
-                className="text-[#D7E2EA] font-medium uppercase tracking-wider text-sm md:text-lg lg:text-[1.4rem] transition-opacity duration-200 hover:opacity-70 focus:outline-none"
-              >
-                {link}
-              </button>
-            ))}
-          </div>
-
-          {/* Mobile Hamburger Button + Desktop Landing Page Button */}
-          <div className="flex items-center gap-4">
-            {/* Desktop Only Landing Page Showcase Button */}
-            <button
-              onClick={() => triggerNavigation("landing_page")}
-              className="hidden md:flex items-center gap-2 text-xs sm:text-sm font-semibold uppercase tracking-wider border border-white/20 px-4 py-2 rounded-full backdrop-blur-md bg-white/5 hover:bg-white/10 hover:border-white/40 transition-all duration-300"
-            >
-              Landing Page <ArrowUpRight className="w-3.5 h-3.5" />
-            </button>
-
-            {/* Mobile Hamburger Icon */}
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="relative md:hidden flex items-center justify-center p-2 text-[#D7E2EA] hover:text-[#B600A8] transition-colors focus:outline-none z-50 cursor-pointer"
-              aria-label="Toggle Menu"
-            >
-              {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
-          </div>
-        </FadeIn>
-
-        {/* Mobile Menu Overlay */}
-        <AnimatePresence>
-          {isMobileMenuOpen && (
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3 }}
-              className="fixed inset-0 bg-[#0C0C0C]/98 backdrop-blur-xl z-40 flex flex-col justify-center items-center gap-8 md:hidden"
-            >
-              <div className="flex flex-col gap-6 text-center">
-                {["About", "Services", "Projects", "Contact"].map((link) => (
-                  <button
-                    key={link}
-                    onClick={() => {
-                      setIsMobileMenuOpen(false)
-                      setTimeout(() => {
-                        scrollToSection(link.toLowerCase())
-                      }, 300)
-                    }}
-                    className="text-white font-semibold uppercase tracking-widest text-2xl hover:text-[#B600A8] transition-colors focus:outline-none"
-                  >
-                    {link}
-                  </button>
-                ))}
-                
-                <button
-                  onClick={() => {
-                    setIsMobileMenuOpen(false)
-                    triggerNavigation("landing_page")
-                  }}
-                  className="mt-4 flex items-center justify-center gap-2 text-sm font-semibold uppercase tracking-wider border border-white/20 px-6 py-3 rounded-full bg-white/5 hover:bg-white/10 hover:border-white/40 transition-all duration-300"
-                >
-                  Landing Page <ArrowUpRight className="w-4 h-4" />
-                </button>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Absolute Centered Portrait inside Magnet */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 sm:translate-y-0 sm:bottom-0 sm:top-auto z-10">
-          <FadeIn y={30} delay={0.6} duration={1.1}>
-            <Magnet
-              padding={150}
-              strength={3.5}
-              activeTransition="transform 0.3s ease-out"
-              inactiveTransition="transform 0.6s ease-in-out"
-            >
-              <div className="relative w-[200px] sm:w-[360px] md:w-[440px] lg:w-[520px] select-none pointer-events-auto">
-                {/* Backlighting glow */}
-                <div className="absolute -inset-4 bg-gradient-to-tr from-[#7621B0] to-[#B600A8] opacity-35 rounded-full blur-[80px] -z-10 animate-pulse" />
-                <img
-                  src="/portrait_smiling.png"
-                  alt="Shreeyansh Singh Portrait"
-                  draggable="false"
-                  className="w-full h-auto object-contain drop-shadow-[0_15px_30px_rgba(0,0,0,0.8)]"
-                />
-              </div>
-            </Magnet>
-          </FadeIn>
-        </div>
-
-        {/* Hero Heading */}
-        <div className="relative w-full text-center overflow-hidden z-20 mt-6 sm:mt-4 md:-mt-5 select-none pointer-events-none">
-          <FadeIn y={40} delay={0.15} duration={0.9} as="div">
-            <h1 className="hero-heading font-black uppercase tracking-tight leading-none whitespace-nowrap text-[9vw] sm:text-[9.2vw] md:text-[9.5vw] lg:text-[9.8vw]">
-              Hi, i&apos;m shreeyansh
-            </h1>
-          </FadeIn>
-        </div>
-
-        {/* Bottom Bar details */}
-        <div className="flex flex-col sm:flex-row justify-between items-center sm:items-end px-6 md:px-10 w-full z-20 gap-6 sm:gap-0">
-          <FadeIn y={20} delay={0.35} duration={0.8}>
-            <p className="text-[#D7E2EA] font-light uppercase tracking-wide leading-snug text-center sm:text-left text-[clamp(0.8rem,1.4vw,1.25rem)] max-w-[280px] sm:max-w-[240px] md:max-w-[280px]">
-              Full Stack Developer crafting scalable web applications, AI-powered products, and secure backend systems
-            </p>
-          </FadeIn>
-
-          <FadeIn y={20} delay={0.5} duration={0.8}>
-            <ContactButton label="Contact Me" onClick={() => scrollToSection("contact")} />
-          </FadeIn>
-        </div>
-      </section>
-
-      {/* 2. MARQUEE SECTION */}
-      <section ref={marqueeRef} className="relative bg-[#0C0C0C] pt-24 sm:pt-32 md:pt-40 pb-10 w-full overflow-hidden flex flex-col gap-3 z-20">
-
-        {/* Row 1: moves RIGHT on scroll */}
-        <div className="flex gap-3 overflow-hidden select-none pointer-events-none w-full">
-          <div
-            style={{
-              transform: `translate3d(${marqueeOffset - 200}px, 0, 0)`,
-              willChange: "transform",
-            }}
-            className="flex gap-3 whitespace-nowrap will-change-transform"
-          >
-            {tripledRow1.map((url, i) => (
-              <img
-                key={`r1-${i}`}
-                src={url}
-                alt={`preview-row1-${i}`}
-                loading="lazy"
-                className="w-[420px] h-[270px] rounded-2xl object-cover flex-shrink-0 hover:scale-[1.02] transition-all duration-500"
-              />
-            ))}
-          </div>
-        </div>
-
-        {/* Row 2: moves LEFT on scroll */}
-        <div className="flex gap-3 overflow-hidden select-none pointer-events-none w-full">
-          <div
-            style={{
-              transform: `translate3d(${-(marqueeOffset - 200)}px, 0, 0)`,
-              willChange: "transform",
-            }}
-            className="flex gap-3 whitespace-nowrap will-change-transform"
-          >
-            {tripledRow2.map((url, i) => (
-              <img
-                key={`r2-${i}`}
-                src={url}
-                alt={`preview-row2-${i}`}
-                loading="lazy"
-                className="w-[420px] h-[270px] rounded-2xl object-cover flex-shrink-0 hover:scale-[1.02] transition-all duration-500"
-              />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* 3. ABOUT SECTION */}
-      <section id="about" className="relative min-h-screen w-full flex flex-col items-center justify-center px-5 sm:px-8 md:px-10 py-20 bg-[#0C0C0C] overflow-hidden select-none">
-
-        {/* Corner 3D Decorative Images */}
-        {/* Top Left: Moon Icon */}
-        <div className="absolute top-[4%] left-[1%] sm:left-[2%] md:left-[4%] z-10 select-none pointer-events-none">
-          <FadeIn x={-80} y={0} delay={0.1} duration={0.9}>
-            <img
-              src="https://shrug-person-78902957.figma.site/_components/v2/ebb2b8f25d8e24d5f0a5ca8af4c950de81aa2fd7/moon_icon.11395d36.png"
-              alt="Decorative Moon"
-              className="w-[120px] sm:w-[160px] md:w-[210px] h-auto object-contain filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.5)]"
-            />
-          </FadeIn>
-        </div>
-
-        {/* Bottom Left: 3D Object */}
-        <div className="absolute bottom-[8%] left-[3%] sm:left-[6%] md:left-[10%] z-10 select-none pointer-events-none">
-          <FadeIn x={-80} y={0} delay={0.25} duration={0.9}>
-            <img
-              src="https://shrug-person-78902957.figma.site/_components/v2/ebb2b8f25d8e24d5f0a5ca8af4c950de81aa2fd7/p59_1.4659672e.png"
-              alt="Decorative 3D element"
-              className="w-[100px] sm:w-[140px] md:w-[180px] h-auto object-contain filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.5)]"
-            />
-          </FadeIn>
-        </div>
-
-        {/* Top Right: Lego Icon */}
-        <div className="absolute top-[4%] right-[1%] sm:right-[2%] md:right-[4%] z-10 select-none pointer-events-none">
-          <FadeIn x={80} y={0} delay={0.15} duration={0.9}>
-            <img
-              src="https://shrug-person-78902957.figma.site/_components/v2/ebb2b8f25d8e24d5f0a5ca8af4c950de81aa2fd7/lego_icon-1.703bb594.png"
-              alt="Decorative Lego"
-              className="w-[120px] sm:w-[160px] md:w-[210px] h-auto object-contain filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.5)]"
-            />
-          </FadeIn>
-        </div>
-
-        {/* Bottom Right: 3D Group */}
-        <div className="absolute bottom-[8%] right-[3%] sm:right-[6%] md:right-[10%] z-10 select-none pointer-events-none">
-          <FadeIn x={80} y={0} delay={0.3} duration={0.9}>
-            <img
-              src="https://shrug-person-78902957.figma.site/_components/v2/ebb2b8f25d8e24d5f0a5ca8af4c950de81aa2fd7/Group_134-1.2e04f3ce.png"
-              alt="Decorative 3D Group"
-              className="w-[130px] sm:w-[170px] md:w-[220px] h-auto object-contain filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.5)]"
-            />
-          </FadeIn>
-        </div>
-
-        {/* Core Contents */}
-        <div className="max-w-[800px] w-full flex flex-col items-center justify-center text-center z-20">
-
-          <FadeIn y={40} delay={0} duration={0.8} className="mb-10 sm:mb-14 md:mb-12">
-            <h2 className="hero-heading font-black uppercase leading-none tracking-tight text-[clamp(3rem,12vw,140px)] md:text-[clamp(3.5rem,11vw,160px)]">
-              About me
-            </h2>
-          </FadeIn>
-
-          <div className="mb-16 sm:mb-16 md:mb-20 px-4 flex flex-col gap-6 text-[#D7E2EA]/90 text-center text-base sm:text-lg md:text-xl font-light leading-relaxed max-w-[700px]">
-            <AnimatedText
-              text="I am a Computer Engineering student and Full Stack Developer focused on building scalable, secure, and intelligent software. My interests span backend engineering, AI systems, cloud technologies, and modern web development. I enjoy transforming ambitious ideas into products that solve meaningful real-world problems."
-              className="block"
-            />
-            <AnimatedText
-              text="Over the past few years, I've built AI-powered platforms, secure web applications, and distributed backend systems while continuously improving my problem-solving skills through competitive programming and hackathons."
-              className="block"
-            />
-            <AnimatedText
-              text="Outside of coding, I enjoy learning new technologies, participating in hackathons, and exploring scalable software architecture."
-              className="block"
-            />
-          </div>
-
-          <FadeIn y={20} delay={0.4} duration={0.8}>
-            <ContactButton label="Contact Me" onClick={() => scrollToSection("contact")} />
-          </FadeIn>
-
-        </div>
-      </section>
-
-      {/* 3.5 HIGHLIGHTS SECTION */}
-      <section className="relative py-20 bg-[#0C0C0C] border-t border-b border-[#D7E2EA]/10 w-full overflow-hidden z-20">
-        <div className="max-w-5xl mx-auto px-5 w-full">
-          <FadeIn y={30} delay={0} duration={0.8} className="text-center mb-12">
-            <h2 className="hero-heading font-black uppercase text-4xl sm:text-5xl tracking-wide">
-              Highlights
-            </h2>
-          </FadeIn>
-
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 sm:gap-6 text-center">
-            {[
-              { val: "6", suf: "+", label: "Hackathon + Paper Presentation Winner" },
-              { val: "150", suf: "+", label: "LeetCode Problems Solved" },
-              { val: "10", suf: "+", label: "Major Projects Built" },
-              { val: "3", suf: "+", label: "Years of Programming Experience" },
-              { val: "100", suf: "%", label: "Passion for Learning" }
-            ].map((stat, idx) => (
-              <FadeIn
-                key={idx}
-                y={20}
-                delay={idx * 0.1}
-                className="flex flex-col items-center justify-center p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm shadow-[0_15px_30px_rgba(0,0,0,0.5)]"
-              >
-                <span className="text-4xl sm:text-5xl font-black text-[#B600A8] mb-2">
-                  <Counter value={stat.val} suffix={stat.suf} />
-                </span>
-                <span className="text-xs sm:text-[13px] font-medium uppercase tracking-wider text-[#D7E2EA]/75 leading-tight">
-                  {stat.label}
-                </span>
-              </FadeIn>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* 3.6 QUICK SEARCH SECTION */}
-      <section id="quick-search" ref={searchSectionRef} className="relative py-20 bg-[#0C0C0C] border-b border-[#D7E2EA]/10 w-full overflow-hidden z-20">
-        <div className="max-w-5xl mx-auto px-5 w-full">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12 items-start">
-            {/* Left Column: People Also Ask Accordion */}
-            <div className="lg:col-span-7 flex flex-col gap-6">
-              <FadeIn y={30} delay={0} className="w-full bg-[#121214]/60 border border-white/5 p-6 sm:p-8 rounded-3xl backdrop-blur-md text-left select-none">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#7621B0] to-[#B600A8] flex items-center justify-center shadow-lg">
-                    <Sparkles className="w-4 h-4 text-white" />
-                  </div>
-                  <h3 className="text-xl sm:text-2xl font-bold uppercase tracking-wider text-white">People also ask</h3>
-                </div>
-                <div className="flex flex-col">
-                  <AccordionItem 
-                    question="What is Shreeyansh's education and CGPA?" 
-                    answer="B.E. in Computer Engineering from Vidyavardhini's College of Engineering and Technology (VCET), Mumbai (Aug 2023 – Present). CGPA: 8.03."
-                    isOpen={activeAccordionIdx === 0}
-                    onToggle={() => setActiveAccordionIdx(activeAccordionIdx === 0 ? null : 0)}
-                  />
-                  <AccordionItem 
-                    question="Does Shreeyansh have any professional work experience?" 
-                    answer="• Full Stack Developer Intern — ESAMYAK SOFTWARE PVT LTD (Jun 2025 – Jul 2025): Engineered robust web applications using Java, Spring Boot, React, and MongoDB, optimizing backend APIs and streamlining data workflows."
-                    isOpen={activeAccordionIdx === 1}
-                    onToggle={() => setActiveAccordionIdx(activeAccordionIdx === 1 ? null : 1)}
-                  />
-                  <AccordionItem 
-                    question="Which technical skills does Shreeyansh excel at?" 
-                    answer="• Languages/Frameworks: Java, Spring Boot, JavaScript, Node.js, React.js, Express.js, Python, C/C++&#10;• Databases: MongoDB, MySQL&#10;• Tools: Git, Docker, GitHub Actions, REST APIs, Socket.io, Cloudinary, ZegoCloud"
-                    isOpen={activeAccordionIdx === 2}
-                    onToggle={() => setActiveAccordionIdx(activeAccordionIdx === 2 ? null : 2)}
-                  />
-                  <AccordionItem 
-                    question="What are some of Shreeyansh's key projects?" 
-                    answer="• AI Wearable Pendant: An AI-powered wearable assistant capturing conversations using ESP32-C3 and INMP441 to passively capture conversations for memory recall and contextual automation.&#10;• GovGenie: An AI-driven secure government portal with Aadhaar-based facial verification (OpenCV), Socket.io real-time chat, and Dockerized microservices.&#10;• OpinionTrade: A copyrighted polling platform built using React, Node.js, Express, and MongoDB."
-                    isOpen={activeAccordionIdx === 3}
-                    onToggle={() => setActiveAccordionIdx(activeAccordionIdx === 3 ? null : 3)}
-                  />
-                  <AccordionItem 
-                    question="What achievements and hackathons has Shreeyansh won?" 
-                    answer="• Winner — HackX 2.0 (2026) SFIT, 1st Prize in FinTech & Digital Economy&#10;• Winner — PixxelHack 1.0 (2025) TCET, National-Level Webathon&#10;• Winner — IDEAVERSE 1.0 (2026) TCET, National-Level AI & ML Ideathon&#10;• Runner-up — COHERENCE (2026) GovTech Financial Intelligence Track&#10;• Winner — VNPS National-Level Project Showcase (2025, 2026)&#10;• Winner — VCET OSCILLATION Technical Competition (2025, 2026)"
-                    isOpen={activeAccordionIdx === 4}
-                    onToggle={() => setActiveAccordionIdx(activeAccordionIdx === 4 ? null : 4)}
-                  />
-                  <AccordionItem 
-                    question="What extracurricular achievements does Shreeyansh have?" 
-                    answer="Shreeyansh was the Sports Captain during school, demonstrating early leadership, and actively participates in hackathons, tech fests, and innovation challenges."
-                    isOpen={activeAccordionIdx === 5}
-                    onToggle={() => setActiveAccordionIdx(activeAccordionIdx === 5 ? null : 5)}
-                  />
-                  <AccordionItem 
-                    question="Where did Shreeyansh complete his schooling (SSC & HSC)?" 
-                    answer="He completed both his SSC (scoring 84.4%) and HSC studies from Holy Family Convent High School and Junior College."
-                    isOpen={activeAccordionIdx === 6}
-                    onToggle={() => setActiveAccordionIdx(activeAccordionIdx === 6 ? null : 6)}
-                  />
-                </div>
-              </FadeIn>
-            </div>
-
-            {/* Right Column: Google Search Style Profile Card */}
-            <div className="lg:col-span-5 flex justify-center lg:sticky lg:top-24 w-full">
-              <FadeIn x={50} delay={0.15} className="w-full max-w-md">
-                <div className="bg-[#171719]/90 border border-white/10 rounded-3xl p-6 shadow-2xl w-full text-left backdrop-blur-md select-none">
-                  {/* Avatar Image and Name info */}
-                  <div className="flex flex-col items-center text-center pb-6 border-b border-white/10">
-                    <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-[#B600A8] mb-4 shadow-[0_0_15px_rgba(182,0,168,0.3)]">
-                      <img src="/portrait_smiling.png" alt="Shreeyansh Singh" className="w-full h-full object-cover" />
-                    </div>
-                    <h3 className="text-xl font-bold text-white uppercase tracking-wide">Shreeyansh Singh</h3>
-                    <p className="text-xs text-cyan-400 font-semibold uppercase tracking-wider mt-1">Full-Stack Developer · AI Solutions</p>
-                  </div>
-                  
-                  {/* Details list */}
-                  <div className="py-5 space-y-3.5 border-b border-white/10">
-                    <div className="grid grid-cols-3 gap-2 text-sm">
-                      <span className="text-[#D7E2EA]/50 font-light">Education</span>
-                      <span className="col-span-2 text-white font-medium">B.E. Computer Engineering, VCET</span>
-                    </div>
-                    <div className="grid grid-cols-3 gap-2 text-sm">
-                      <span className="text-[#D7E2EA]/50 font-light">CGPA</span>
-                      <span className="col-span-2 text-white font-medium">8.03 / 10</span>
-                    </div>
-                    <div className="grid grid-cols-3 gap-2 text-sm">
-                      <span className="text-[#D7E2EA]/50 font-light">Location</span>
-                      <span className="col-span-2 text-cyan-400 font-medium">Mumbai, India</span>
-                    </div>
-                    <div className="grid grid-cols-3 gap-2 text-sm">
-                      <span className="text-[#D7E2EA]/50 font-light">Experience</span>
-                      <span className="col-span-2 text-white font-medium">Full Stack Intern @ Esamyak</span>
-                    </div>
-                  </div>
-
-                  {/* Skill pills and Links */}
-                  <div className="py-5 space-y-4 border-b border-white/10">
-                    <div className="flex flex-wrap gap-2">
-                      {["Java", "Spring Boot", "React", "Node.js", "Python"].map(skill => (
-                        <span key={skill} className="px-3 py-1 rounded-full text-[11px] bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 font-medium">
-                          {skill}
-                        </span>
-                      ))}
-                    </div>
-                    <div className="flex flex-wrap gap-2 text-xs">
-                      <a href="https://linkedin.com/in/shreeyansh-singh" target="_blank" rel="noreferrer" className="px-3 py-1.5 rounded-full border border-white/10 hover:border-[#B600A8]/50 hover:bg-[#B600A8]/10 text-white transition-all cursor-pointer">
-                        LinkedIn
-                      </a>
-                      <a href="https://github.com/Shreeyansh-07" target="_blank" rel="noreferrer" className="px-3 py-1.5 rounded-full border border-white/10 hover:border-[#B600A8]/50 hover:bg-[#B600A8]/10 text-white transition-all cursor-pointer">
-                        GitHub
-                      </a>
-                      <a href="mailto:shreeyanshsingh07@gmail.com" className="px-3 py-1.5 rounded-full border border-white/10 hover:border-[#B600A8]/50 hover:bg-[#B600A8]/10 text-white transition-all cursor-pointer">
-                        Email
-                      </a>
-                      <a id="resume-download-btn" href="/Shreeyansh Singh Resume .pdf" download className="px-3 py-1.5 rounded-full border border-[#B600A8] text-white hover:bg-[#B600A8]/20 transition-all font-semibold flex items-center gap-1 cursor-pointer">
-                        Resume 📥
-                      </a>
-                    </div>
-                  </div>
-
-                  {/* People also search for */}
-                  <div className="pt-4">
-                    <span className="text-[11px] font-bold text-[#D7E2EA]/50 uppercase tracking-widest block mb-2.5">People also search for</span>
-                    <div className="flex flex-wrap gap-2">
-                      {["Education", "Experience", "Projects", "Resume"].map(item => (
-                        <button 
-                          key={item} 
-                          onClick={() => {
-                            if (item === "Resume") {
-                              const link = document.createElement("a");
-                              link.href = "/Shreeyansh Singh Resume .pdf";
-                              link.download = "Shreeyansh_Singh_Resume.pdf";
-                              link.click();
-                            } else if (item === "Projects") {
-                              scrollToSection("projects");
-                            } else if (item === "Experience") {
-                              scrollToSection("quick-search");
-                              setActiveAccordionIdx(1);
-                            } else {
-                              scrollToSection("quick-search");
-                              setActiveAccordionIdx(0);
-                            }
-                          }}
-                          className="px-3 py-1 rounded-full text-xs border border-white/15 hover:border-cyan-400/50 hover:text-cyan-400 text-[#D7E2EA] transition-all cursor-pointer"
-                        >
-                          {item}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </FadeIn>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 4. SERVICES SECTION */}
-      <section id="services" className="relative bg-white text-[#0C0C0C] rounded-t-[40px] sm:rounded-t-[50px] md:rounded-t-[60px] px-5 sm:px-8 md:px-10 py-20 sm:py-24 md:py-32 z-20">
-        <div className="max-w-5xl mx-auto w-full">
-
-          <h2 className="font-black uppercase text-center text-[#0C0C0C] tracking-tight leading-none mb-16 sm:mb-20 md:mb-28 text-[clamp(3rem,12vw,140px)] md:text-[clamp(3.5rem,11vw,160px)]">
-            Services
-          </h2>
-
-          <div className="flex flex-col border-t border-[#0C0C0C]/15">
-            {[
-              {
-                num: "01",
-                name: "Full Stack Development",
-                desc: "Designing modern web applications using React, Node.js, Spring Boot, Express, and MongoDB with clean architecture and responsive user experiences."
-              },
-              {
-                num: "02",
-                name: "Cloud & System Design",
-                desc: "Architecting secure databases, Dockerized deployments, CI/CD pipelines, and scalable cloud infrastructure for production-ready applications."
-              },
-              {
-                num: "03",
-                name: "Frontend Engineering",
-                desc: "Building responsive, visually engaging, and accessible web applications with modern UI technologies, smooth interactions, and optimized performance."
-              },
-              {
-                num: "04",
-                name: "AI Application",
-                desc: "Building AI-powered assistants, computer vision solutions, intelligent automation systems, and LLM integrations using Python, OpenCV, and modern AI APIs."
-              },
-              {
-                num: "05",
-                name: "Problem Solving",
-                desc: "Applying strong data structures, algorithms, and software engineering principles to build efficient and maintainable software solutions."
-              }
-            ].map((service, index) => (
-              <FadeIn
-                key={service.num}
-                y={30}
-                delay={index * 0.1}
-                duration={0.8}
-                className="flex flex-col sm:flex-row sm:items-center items-start gap-4 sm:gap-8 md:gap-12 py-8 sm:py-10 md:py-12 border-b border-[#0C0C0C]/15"
-              >
-                {/* Number Left */}
-                <span className="font-black leading-none text-[#0C0C0C] w-auto sm:w-[120px] md:w-[160px] text-[clamp(3rem,10vw,140px)]">
-                  {service.num}
-                </span>
-
-                {/* Stacked Details Right */}
-                <div className="flex flex-col gap-1.5 sm:gap-2.5 max-w-2xl">
-                  <h3 className="font-medium uppercase text-[#0C0C0C] text-[clamp(1rem,2.2vw,2.1rem)]">
-                    {service.name}
-                  </h3>
-                  <p className="font-light leading-relaxed text-[#0C0C0C] opacity-60 text-[clamp(0.85rem,1.6vw,1.25rem)]">
-                    {service.desc}
-                  </p>
-                </div>
-              </FadeIn>
-            ))}
-          </div>
-
-        </div>
-      </section>
-
-      {/* 5. PROJECTS SECTION */}
-      <section
-        id="projects"
-        className="relative bg-[#0C0C0C] text-[#D7E2EA] rounded-t-[40px] sm:rounded-t-[50px] md:rounded-t-[60px] -mt-10 sm:-mt-12 md:-mt-14 pt-20 sm:pt-24 md:pt-28 pb-16 z-25"
-      >
-        <div className="max-w-5xl mx-auto px-5 w-full">
-
-          <div className="text-center mb-10 sm:mb-16">
-            <h2 className="hero-heading font-black uppercase tracking-tight leading-none text-[clamp(3rem,12vw,140px)] md:text-[clamp(3.5rem,11vw,160px)]">
-              Projects
-            </h2>
-          </div>
-
-          {/* Sticky Stacking Cards Container */}
-          <div className="flex flex-col gap-[10vh]">
-            {[
-              {
-                num: "01",
-                name: "AI Wearable Pendant",
-                category: "Smart Personal Assistant",
-                desc: "An AI-powered wearable assistant capable of capturing conversations, generating summaries, extracting meeting notes, and enabling intelligent voice-triggered automation.",
-                col1_img1: "/pendant_product.png",
-                col1_img2: "/pendant_usage.png",
-                col2_img: "/pendant_app.png",
-                buttons: [
-                  {
-                    label: "Appreciation Post",
-                    link: "https://www.linkedin.com/posts/sripriyagn7_just-hired-an-intern-who-we-couldnt-say-activity-7398667806042574848-ciXF?utm_source=share&utm_medium=member_android&rcm=ACoAAFVqEEQBHGpAFTSGXXwK7uu6hMQ9E9wdYzw"
-                  }
-                ],
-                tech: ["Python", "OpenCV", "LLMs", "Audio Processing", "AI Integration"]
-              },
-              {
-                num: "02",
-                name: "GovGenie AI Portal",
-                category: "AI Government Platform",
-                desc: "A secure full-stack platform connecting citizens with verified agents using AI-powered verification, OCR, real-time communication, and intelligent document processing.",
-                col1_img1: "/govgenie_secure.png",
-                col1_img2: "/govgenie_auth.png",
-                col2_img: "/govgenie_dashboard.png",
-                buttons: [],
-                tech: ["React", "Node.js", "Express", "MongoDB", "Python", "OpenCV", "Socket.io", "Cloudinary"]
-              },
-              {
-                num: "03",
-                name: "OpinionTrade",
-                category: "Incentivized Polling",
-                desc: "A secure polling platform featuring authentication, voting systems, analytics, and scalable backend architecture.",
-                col1_img1: "/opiniontrade_polls.png",
-                col1_img2: "/opiniontrade_coupons.png",
-                col2_img: "/opiniontrade_trading.png",
-                buttons: [
-                  {
-                    label: "Live Website",
-                    link: "https://opiniontrade.onrender.com/"
-                  },
-                  {
-                    label: "Copyright certificate",
-                    link: "https://www.linkedin.com/posts/shreeyansh-singh-858ab633b_happy-to-share-that-our-project-opiniontrade-activity-7354749746420346881-4qCN?utm_source=share&utm_medium=member_android&rcm=ACoAAFVqEEQBHGpAFTSGXXwK7uu6hMQ9E9wdYzw"
-                  }
-                ],
-                tech: ["React", "Node.js", "Express", "MongoDB", "REST API", "Auth Systems"]
-              }
-            ].map((project, index) => {
-              // Scale factor calculation: targetScale = 1 - (total - 1 - index) * 0.03
-              // const targetScale = 1 - (3 - 1 - index) * 0.03
-              return (
-                <div
-                  key={project.num}
-                  className="sticky top-20 sm:top-24 md:top-32 w-full pt-4 pb-12 select-none"
-                  style={{
-                    zIndex: 10 + index,
-                  }}
-                >
-                  <motion.div
-                    initial={{ scale: 0.95, opacity: 0 }}
-                    whileInView={{ scale: 1, opacity: 1 }}
-                    viewport={{ once: true, margin: "-100px" }}
-                    transition={{ duration: 0.6 }}
-                    style={{
-                      transformOrigin: "top center",
-                      "--stack-offset": `${index * 28}px`,
-                    }}
-                    className="project-card-inner group relative rounded-[40px] sm:rounded-[50px] md:rounded-[60px] border-2 border-[#D7E2EA] bg-[#0C0C0C] p-4 sm:p-6 md:p-8 w-full max-w-5xl shadow-[0_30px_60px_rgba(0,0,0,0.8)]"
-                  >
-                    {/* Top Row */}
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[#D7E2EA]/15 pb-4 mb-4 gap-4">
-                      <div className="flex items-center gap-4">
-                        <span className="font-black text-[clamp(2.5rem,6vw,5.5rem)] text-[#D7E2EA]/30 leading-none">
-                          {project.num}
-                        </span>
-                        <div>
-                          <span className="text-xs uppercase tracking-widest text-[#D7E2EA]/60 block mb-1">
-                            {project.category}
-                          </span>
-                          <h3 className="text-xl sm:text-2xl md:text-3xl font-bold uppercase text-[#D7E2EA]">
-                            {project.name}
-                          </h3>
-                        </div>
-                      </div>
-
-                      <div className="flex flex-wrap gap-3">
-                        {project.buttons.map((btn, btnIdx) => (
-                          <LiveProjectButton key={btnIdx} label={btn.label} onClick={() => window.open(btn.link, "_blank")} />
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Project Description & Tech Stack */}
-                    <div className="mb-4 text-[#D7E2EA] text-xs sm:text-sm md:text-base leading-relaxed border-b border-[#D7E2EA]/10 pb-4">
-                      <p className="mb-3 text-[#D7E2EA]/85 font-light">{project.desc}</p>
-                      <div className="flex flex-wrap gap-2">
-                        {project.tech.map((t) => (
-                          <span key={t} className="text-[10px] uppercase font-mono tracking-widest bg-white/5 border border-white/10 px-2.5 py-0.5 rounded text-[#D7E2EA]/70">
-                            {t}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Bottom Row: 2-Column Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-10 gap-4 sm:gap-6 mt-4">
-                      {/* Left Column (40%) - Hidden on Mobile */}
-                      <div className="hidden md:flex md:col-span-4 flex-col gap-4">
-                        <img
-                          src={project.col1_img1}
-                          alt={`${project.name} preview 1`}
-                          loading="lazy"
-                          className="w-full object-cover rounded-[30px] sm:rounded-[40px] md:rounded-[50px] border border-[#D7E2EA]/10 hover:border-[#D7E2EA]/30 transition-all duration-500"
-                          style={{ height: "clamp(130px, 16vw, 230px)" }}
-                        />
-                        <img
-                          src={project.col1_img2}
-                          alt={`${project.name} preview 2`}
-                          loading="lazy"
-                          className="w-full object-cover rounded-[30px] sm:rounded-[40px] md:rounded-[50px] border border-[#D7E2EA]/10 hover:border-[#D7E2EA]/30 transition-all duration-500"
-                          style={{ height: "clamp(160px, 22vw, 340px)" }}
-                        />
-                      </div>
-
-                      {/* Right Column (60%) - Full Width on Mobile */}
-                      <div className="col-span-1 md:col-span-6">
-                        <img
-                          src={project.col2_img}
-                          alt={`${project.name} preview main`}
-                          loading="lazy"
-                          className="w-full h-full object-cover rounded-[30px] sm:rounded-[40px] md:rounded-[50px] border border-[#D7E2EA]/10 hover:border-[#D7E2EA]/30 transition-all duration-500"
-                          style={{ minHeight: "clamp(180px, 38vw, 590px)" }}
-                        />
-                      </div>
-                    </div>
-                  </motion.div>
-                </div>
-              )
-            })}
-          </div>
-
-        </div>
-      </section>
-
-      <div id="interactive-3d-container" style={{ zIndex: 20, position: "relative" }} className="w-full">
-        {/* 5.5 RECOGNITIONS SECTION */}
-        <section className="relative bg-transparent text-[#D7E2EA] py-20 w-full overflow-hidden border-t border-[#D7E2EA]/10 z-20">
-          <div className="max-w-5xl mx-auto px-5 w-full">
-            <div className="grid grid-cols-1 md:grid-cols-10 gap-8 items-start">
-
-              {/* Left Column (60%): Written content + Cards */}
-              <div className="md:col-span-6 flex flex-col gap-8">
-                <div>
-                  <h2 className="hero-heading font-black uppercase text-4xl sm:text-5xl tracking-wide">
-                    Recognitions
-                  </h2>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  {[
-                    { title: "HackX 2.0 Champion", subtitle: "1st Place • FinTech & Digital Economy", desc: "Won first prize in a highly competitive national-level hackathon, building Fintech logic under 36 hours." },
-                    { title: "PixxelHack Winner", subtitle: "National Level Webathon Champion", desc: "Awarded top ranks for engineering production-ready web platforms on tight deadlines." },
-                    { title: "IDEAVERSE Final Winner", subtitle: "AI Innovation Challenge", desc: "Recognized for building next-generation AI platforms solving key enterprise challenges." },
-                    { title: "VNPS", subtitle: "1st Rank Winner", desc: "Secured first place in national level system design and development competition." },
-                    { title: "Oscillation", subtitle: "1st Rank Winner", desc: "Achieved top spot in technical software development code hackathon." },
-                    { title: "LeetCode Practice", subtitle: "150+ LeetCode Solved", desc: "Continuous algorithms and data structures training to build optimal, bug-free applications." }
-                  ].map((rec, idx) => (
-                    <FadeIn
-                      key={idx}
-                      y={30}
-                      delay={idx * 0.08}
-                      className="flex flex-col justify-between p-6 rounded-3xl bg-[#121212]/95 backdrop-blur-md border border-white/10 hover:border-[#B600A8]/30 transition-all duration-300 shadow-[0_15px_30px_rgba(0,0,0,0.4)] relative overflow-hidden group"
-                    >
-                      <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-[#B600A8]/10 to-transparent rounded-bl-full pointer-events-none opacity-50 group-hover:opacity-100 transition-opacity" />
-                      <div>
-                        <span className="text-3xl mb-4 block">🏆</span>
-                        <h3 className="text-lg font-bold text-white uppercase tracking-wide mb-1 group-hover:text-cyan-400 transition-colors">
-                          {rec.title}
-                        </h3>
-                        <span className="text-xs font-semibold text-cyan-400/90 tracking-wider block mb-3">
-                          {rec.subtitle}
-                        </span>
-                        <p className="text-xs sm:text-sm text-[#D7E2EA]/60 font-light leading-relaxed">
-                          {rec.desc}
-                        </p>
-                      </div>
-                    </FadeIn>
-                  ))}
-                </div>
-              </div>
-
-              {/* Right Column (40%): Empty space for the 3D model */}
-              <div className="hidden md:block md:col-span-4" />
-
-            </div>
-          </div>
-        </section>
-
-        {/* 5.6 TECH STACK SECTION */}
-        <section id="tech-stack" className="relative bg-transparent text-[#D7E2EA] min-h-[180vh] w-full border-t border-[#D7E2EA]/10 z-20">
-
-          {/* Content Layout - written stuff scrolls past on the left, right side is empty for the model */}
-          <div className="relative max-w-5xl mx-auto px-5 w-full pt-20 pb-32 z-20 grid grid-cols-1 md:grid-cols-10 gap-8">
-
-            {/* Left Column: 5 Tech Categories (Text Content) */}
-            <div className="md:col-span-5 flex flex-col gap-6">
-              <div className="mb-8">
-                <h2 className="hero-heading font-black uppercase text-4xl sm:text-5xl tracking-wide">
-                  Technologies I Work With
-                </h2>
-              </div>
-
-              {[
-                { category: "Frontend", techs: ["React", "Next.js", "Tailwind", "JavaScript"] },
-                { category: "Backend", techs: ["Node.js", "Express", "Spring Boot", "REST API"] },
-                { category: "AI", techs: ["Python", "OpenCV", "LLMs", "Computer Vision"] },
-                { category: "Databases", techs: ["MongoDB", "MySQL"] },
-                { category: "Cloud", techs: ["Docker", "GitHub Actions", "CI/CD"] }
-              ].map((cat, idx) => (
-                <FadeIn
-                  key={idx}
-                  y={20}
-                  delay={idx * 0.08}
-                  className="p-6 rounded-2xl bg-[#121212]/95 backdrop-blur-md border border-white/10 hover:border-cyan-500/20 transition-all duration-300 shadow-[0_15px_30px_rgba(0,0,0,0.2)]"
-                >
-                  <h3 className="text-sm font-bold text-cyan-400 uppercase tracking-widest border-b border-white/10 pb-2 mb-4">
-                    {cat.category}
-                  </h3>
-                  <div className="flex flex-col gap-2 font-mono text-xs text-[#D7E2EA]/85">
-                    {cat.techs.map((t, tIdx) => (
-                      <span key={tIdx} className="tracking-wide">
-                        {t}
-                      </span>
-                    ))}
-                  </div>
-                </FadeIn>
-              ))}
-            </div>
-
-            {/* Right Column: Empty side for the 3D neural core video to travel diagonally */}
-            <div className="hidden md:block md:col-span-5" />
-
-          </div>
-        </section>
-
-        {/* 5.7 WHY CHOOSE ME SECTION */}
-        <section className="relative bg-transparent text-[#D7E2EA] py-20 w-full border-t border-[#D7E2EA]/10 z-20">
-          <div className="max-w-5xl mx-auto px-5 w-full">
-            <div className="grid grid-cols-1 md:grid-cols-10 gap-8 items-start">
-
-              {/* Left Column (40%): Empty space for the 3D model */}
-              <div className="hidden md:block md:col-span-4" />
-
-              {/* Right Column (60%): Written content + Cards */}
-              <div className="md:col-span-6 flex flex-col gap-8">
-                <div>
-                  <h2 className="hero-heading font-black uppercase text-4xl sm:text-5xl tracking-wide">
-                    Why Choose Me?
-                  </h2>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  {[
-                    { icon: "🚀", title: "Scalable Development", desc: "Applications built with maintainability, clean coding architecture, and high performance in mind." },
-                    { icon: "🤖", title: "AI Expertise", desc: "Practical, hands-on experience integrating advanced AI pipelines into production-ready web systems." },
-                    { icon: "🏆", title: "Hackathon Mindset", desc: "Experienced in delivering functional, innovative engineering solutions under tight project deadlines." },
-                    { icon: "📈", title: "Continuous Learning", desc: "Always exploring modern cloud architectures, algorithms, and next-generation framework stacks." }
-                  ].map((card, idx) => (
-                    <FadeIn
-                      key={idx}
-                      y={30}
-                      delay={idx * 0.1}
-                      className="p-6 rounded-3xl bg-[#121212]/95 backdrop-blur-md border border-white/10 hover:border-[#B600A8]/30 transition-all duration-300 shadow-[0_15px_30px_rgba(0,0,0,0.3)] text-left flex flex-col justify-between"
-                    >
-                      <div>
-                        <span className="text-3xl mb-4 block">{card.icon}</span>
-                        <h3 className="text-md font-bold text-white uppercase tracking-wider mb-2">
-                          {card.title}
-                        </h3>
-                        <p className="text-xs sm:text-sm text-[#D7E2EA]/60 font-light leading-relaxed">
-                          {card.desc}
-                        </p>
-                      </div>
-                    </FadeIn>
-                  ))}
-                </div>
-              </div>
-
-            </div>
-          </div>
-        </section>
-
-        {/* 6. CONTACT / FOOTER SECTION */}
-        <section id="contact" className="relative py-24 px-4 sm:px-6 lg:px-8 border-t border-[#D7E2EA]/10 bg-gradient-to-b from-transparent to-[#0C0C0C] z-20">
-          <div className="max-w-6xl mx-auto flex flex-col items-center">
-            
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 w-full items-start mb-16">
-              
-              {/* Left Column: Info, Social Links */}
-              <div className="lg:col-span-6 flex flex-col text-left justify-center h-full">
-                <FadeIn y={30} delay={0} duration={0.8} className="mb-6">
-                  <h2 className="hero-heading font-black uppercase text-4xl sm:text-5xl md:text-6xl leading-none">
-                    Let&apos;s Build Something Great Together
-                  </h2>
-                </FadeIn>
-
-                <FadeIn y={20} delay={0.15} duration={0.8} className="mb-8">
-                  <p className="text-[#D7E2EA]/75 text-base sm:text-lg md:text-xl leading-relaxed font-light">
-                    Whether you&apos;re looking to build a modern web application, an AI-powered product, or a scalable backend system, I&apos;d love to discuss your ideas and help turn them into reality.
-                  </p>
-                </FadeIn>
-
-                {/* Social links */}
-                <FadeIn y={20} delay={0.3} duration={0.8} className="flex flex-wrap gap-4 sm:gap-6 mt-4">
-                  <a
-                    href="https://www.linkedin.com/in/shreeyansh-singh-858ab633b"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex items-center gap-2 border border-[#D7E2EA]/20 rounded-full px-5 py-2.5 backdrop-blur-md bg-white/5 hover:bg-white hover:text-black hover:border-white transition-all duration-300 font-medium text-sm sm:text-base cursor-pointer"
-                  >
-                    <Linkedin className="w-4 h-4 text-blue-400" />
-                    LinkedIn
-                  </a>
-                  <a
-                    href="https://github.com/Shreeyansh-07"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex items-center gap-2 border border-[#D7E2EA]/20 rounded-full px-5 py-2.5 backdrop-blur-md bg-white/5 hover:bg-white hover:text-black hover:border-white transition-all duration-300 font-medium text-sm sm:text-base cursor-pointer"
-                  >
-                    <Github className="w-4 h-4 text-slate-300" />
-                    GitHub
-                  </a>
-                  <a
-                    href="mailto:shreeyanshsingh07@gmail.com"
-                    className="flex items-center gap-2 border border-[#D7E2EA]/20 rounded-full px-5 py-2.5 backdrop-blur-md bg-white/5 hover:bg-white hover:text-black hover:border-white transition-all duration-300 font-medium text-sm sm:text-base cursor-pointer"
-                  >
-                    <Mail className="w-4 h-4 text-teal-400" />
-                    Get In Touch
-                  </a>
-                </FadeIn>
-              </div>
-
-              {/* Right Column: Contact form */}
-              <div className="lg:col-span-6 flex justify-center w-full">
-                <FadeIn y={30} delay={0.2} className="w-full max-w-lg bg-[#121214]/80 border border-white/10 rounded-3xl p-6 sm:p-8 backdrop-blur-md shadow-[0_20px_40px_rgba(0,0,0,0.5)] text-left">
-                  <h3 className="text-xl sm:text-2xl font-bold uppercase tracking-wider text-white mb-6">Send a message</h3>
-                  
-                  <form onSubmit={handleFormSubmit} className="space-y-4">
-                    <div>
-                      <label htmlFor="name" className="text-xs uppercase tracking-widest text-[#D7E2EA]/60 block mb-2 font-medium">Name</label>
-                      <input
-                        type="text"
-                        id="name"
-                        name="name"
-                        value={formData.name}
-                        onChange={handleInputChange}
-                        placeholder="Your name"
-                        className="w-full px-4 py-3 bg-white/5 border border-white/10 text-white rounded-xl placeholder:text-[#D7E2EA]/30 focus:border-[#B600A8] focus:bg-white/10 focus:outline-none transition-all"
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <label htmlFor="email" className="text-xs uppercase tracking-widest text-[#D7E2EA]/60 block mb-2 font-medium">Email</label>
-                      <input
-                        type="email"
-                        id="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleInputChange}
-                        placeholder="you@company.com"
-                        className="w-full px-4 py-3 bg-white/5 border border-white/10 text-white rounded-xl placeholder:text-[#D7E2EA]/30 focus:border-[#B600A8] focus:bg-white/10 focus:outline-none transition-all"
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <label htmlFor="message" className="text-xs uppercase tracking-widest text-[#D7E2EA]/60 block mb-2 font-medium">Message</label>
-                      <textarea
-                        id="message"
-                        name="message"
-                        value={formData.message}
-                        onChange={handleInputChange}
-                        placeholder="Tell me about the role..."
-                        rows="4"
-                        className="w-full px-4 py-3 bg-white/5 border border-white/10 text-white rounded-xl placeholder:text-[#D7E2EA]/30 focus:border-[#B600A8] focus:bg-white/10 focus:outline-none transition-all resize-none"
-                        required
-                      />
-                    </div>
-
-                    <button
-                      type="submit"
-                      className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold uppercase tracking-wider rounded-xl transition-all shadow-lg active:scale-95 cursor-pointer text-center text-sm"
-                    >
-                      Send via Email
-                    </button>
-
-                    {formStatus === "success" && (
-                      <p className="text-xs text-green-400 font-medium text-center mt-2 animate-pulse">
-                        Success! Opening your email client to send the message.
-                      </p>
-                    )}
-                    {formStatus === "error" && (
-                      <p className="text-xs text-red-400 font-medium text-center mt-2 animate-pulse">
-                        Please fill in all fields before sending.
-                      </p>
-                    )}
-                  </form>
-                </FadeIn>
-              </div>
-
-            </div>
-
-            {/* Footer Text */}
-            <div className="w-full border-t border-[#D7E2EA]/10 pt-10 text-center">
-              <blockquote className="text-[#D7E2EA]/50 italic font-mono text-xs sm:text-sm max-w-lg mx-auto mb-8 text-center">
-                &ldquo;Building software that solves problems, scales with growth, and creates impact.&rdquo;
-              </blockquote>
-              <div className="text-2xl font-bold hero-heading uppercase tracking-widest mb-4 text-center">
-                Shreeyansh Singh
-              </div>
-              <p className="text-[#D7E2EA]/40 text-sm text-center">
-                © 2026 Shreeyansh Singh. Engineered with React, Tailwind CSS, & Framer Motion.
-              </p>
-            </div>
-
-          </div>
-        </section>
-
-        {/* Floating Chatbot */}
-        <ChatbotWidget />
-
+  const onDragStart = (event, index) => {
+    if (showcaseProgress < .44) return
+    event.currentTarget.setPointerCapture(event.pointerId)
+    dragRef.current = { x: event.clientX, scroll: window.scrollY, moved: false, index }
+  }
+  const onDragMove = event => {
+    if (!dragRef.current) return
+    const distance = event.clientX - dragRef.current.x
+    if (Math.abs(distance) > 5) dragRef.current.moved = true
+    if (dragRef.current.moved) window.scrollTo(0, dragRef.current.scroll - distance * 14)
+  }
+  const onDragEnd = event => {
+    if (dragRef.current?.moved) {
+      event.preventDefault()
+      event.stopPropagation()
+    }
+    dragRef.current = null
+  }
+
+  return <>
+    {isLoading && <LoadingScreen />}
+    <div className="portfolio-shell">
+    <header ref={refNav} className={`floating-nav ${collapsed ? "is-collapsed" : ""}`} style={{ opacity: 0 }}>
+      <button type="button" className="nav-logo" onClick={() => goTo(heroRef)}><span>/</span>Shreeyansh</button>
+      <div className="nav-actions" onMouseEnter={() => setNavHover(true)} onMouseLeave={() => setNavHover(false)}>
+        <nav className="nav-pill" aria-label="Sections">
+          {["home", "about", "services", "projects", "contact"].map(item => <button key={item} type="button" data-active={activeNav === item} onClick={() => {
+            if (item === "home") goTo(heroRef)
+            if (item === "about") goTo(aboutRef, .62)
+            if (item === "services") goTo(showcaseRef, .28)
+            if (item === "projects") goTo(showcaseRef, .58)
+            if (item === "contact") goTo(contactRef, .75)
+          }}>{item}</button>)}
+        </nav>
+        <button type="button" className="play-button" aria-label={playing ? "Pause the record" : "Play the record"} onClick={() => setPlaying(value => !value)}><span className={playing ? "is-spinning" : ""} /></button>
+        <button type="button" className="talk-button" onClick={() => goTo(contactRef, .75)}><span><ArrowIcon /></span><em>Let's talk</em></button>
       </div>
-    </div>
-  )
+    </header>
+
+    <main>
+      <div ref={heroRef} className="hero-track">
+        <section className={`hero ${intro ? "is-night" : ""}`} aria-label="Introduction">
+          <TurntableCanvas progress={heroProgress} dark={intro || heroProgress > .82} playing={playing} onToggle={() => setPlaying(value => !value)} introActive={intro} />
+          <div ref={refJp} className="hero-japanese" style={{ opacity: 0 }}>星を見上げて、何でも作れる</div>
+          <div className="hero-copy" style={{ opacity: 1 - clamp(heroProgress / .2), transform: `translateY(${heroProgress * 80}px)` }}>
+            <p ref={refEyebrow} className="eyebrow hero-eyebrow" style={{ opacity: 0 }}><span />Designer &amp; Developer — Portfolio 2026</p>
+            <h1 ref={refH1}>
+              {/* Split into animatable words for staggered reveal */}
+              <span className="hero-word" style={{ opacity: 0 }}>I make things </span>
+              <span className="hero-word" style={{ opacity: 0 }}>that feel like </span>
+              <em key={wordIndex} className="hero-word" style={{ opacity: 0 }}>{words[wordIndex]}</em>
+            </h1>
+            <div ref={refCta} className="hero-bottom" style={{ opacity: 0 }}><p>Interfaces, motion and code, built with the patience of someone who spends too many nights looking up.</p><button type="button" className="outline-cta" onClick={() => goTo(showcaseRef, .58)}>See the work <ArrowIcon direction="right" /></button></div>
+          </div>
+          <div ref={refStatus} className="hero-status" style={{ opacity: 0 }}><span><i />Available for work</span><span>Sky over Mumbai · {time}</span></div>
+          <footer ref={refFoot} className="hero-footer" style={{ opacity: 0 }}><span>RA 05h 35m 17s · Dec −05° 23′</span><span className="hero-hint">Tap the turntable · Click the sky to warp</span><span className="scroll-cue"><i />Scroll</span></footer>
+        </section>
+      </div>
+
+      <section className="about-section">
+        <div ref={el => { aboutRef.current = el; aboutTrackRef.current = el }} className="about-intro-track">
+          <div ref={aboutStageRef} className="about-intro">
+            <FlightPath trackRef={aboutTrackRef} stageRef={aboutStageRef} h2Ref={aboutH2Ref} stopsRef={aboutStopsRef} />
+            <div className="about-heading"><p className="eyebrow"><span />Side A · Track 01</p><h2 ref={aboutH2Ref}>About <em>me</em></h2><p className="about-subtitle">The person behind the record. Keep scrolling and the ship will show you around.</p></div>
+          </div>
+        </div>
+        <div ref={aboutStopsRef} className="about-stops">
+          {aboutItems.map((item, index) => <Reveal key={item.n} className={`about-stop ${index % 2 ? "reverse" : ""}`}>
+            <article data-stop={item.n}><p className="stop-kicker"><span>{item.n}</span> · {item.kicker}</p><p className="stop-lead">{item.lead}</p>{item.body && <p className="stop-body">{item.body}</p>}</article>
+            <div className="stop-number"><span>{item.n}</span><i /><p>Stop {item.n} · {item.kicker}</p></div>
+          </Reveal>)}
+          <div data-exit style={{ height: 1, pointerEvents: "none" }} />
+        </div>
+      </section>
+
+      <section ref={showcaseRef} className="showcase-track">
+        <div className={`showcase-stage ${dragRef.current ? "is-dragging" : ""}`}>
+          <div className="showcase-light" style={{ opacity: serviceIn * (1 - night) }} />
+          <div className="transition-record" style={{ opacity: clamp((showcaseProgress - .07) / .03) * (1 - serviceIn), transform: `translate(-50%,-50%) scale(${8 - highlightOut * 7})` }}><span>S/Y</span></div>
+          <div className="highlights-panel" style={{ opacity: 1 - highlightOut, pointerEvents: highlightOut > .8 ? "none" : "auto", transform: `translateY(${-highlightOut * 60}px)` }}>
+            <div className="section-heading light-heading"><p className="eyebrow"><span />Side A · Track 02<span /></p><h2>High<em>lights</em></h2></div>
+            <div className="highlights-grid">{highlights.map(item => <article key={item.label}><strong><CountUp value={item.value} suffix={item.suffix} active={showcaseProgress < .18} /></strong><span>{item.label}</span></article>)}</div>
+          </div>
+
+          <div className="services-decor" style={{ opacity: serviceIn * (1 - serviceOut) }} aria-hidden="true">
+            <span className="moon" /><span className="spark spark-a">✦</span><span className="spark spark-b">✦</span><span className="spark spark-c">✦</span><span className="spark spark-d">✦</span>
+            <div className="clouds back" /><div className="clouds front" />
+            <svg className="telescope" viewBox="0 0 220 200"><path d="M0 200C40 150 90 132 130 134s70 26 90 66Z" fill="#cdb7c6" /><g stroke="#5b4a5e" strokeWidth="3.2" strokeLinecap="round" fill="none"><path d="m120 92-24 50m24-50 26 50m-26-50 1 54" /></g><g transform="rotate(-28 120 88)"><rect x="66" y="80" width="86" height="15" rx="4" fill="#5b4a5e" /><rect x="56" y="77" width="16" height="21" rx="3" fill="#5b4a5e" /><rect x="150" y="83" width="12" height="9" rx="2" fill="#5b4a5e" /></g></svg>
+          </div>
+          <div className="services-panel" style={{ opacity: serviceIn * (1 - serviceOut), pointerEvents: serviceIn > .8 && serviceOut < .5 ? "auto" : "none" }}>
+            <div className="section-heading"><p className="eyebrow"><span />Side A · Track 03<span /></p><h2>Ser<em>vices</em></h2></div>
+            <div className="services-grid">{services.map((service, index) => <article key={service.n} className="service-card" style={{ "--c1": service.colors[0], "--c2": service.colors[1], "--planet": service.colors[2], transform: `translateY(${(1 - serviceIn) * 90 + serviceOut * 80 + index * (1 - serviceIn) * 12}px) rotate(${-90 * (1 - serviceIn)}deg)` }}><div className="service-card-inner"><span className="service-stars" /><span className="service-planet" /><div className="service-meta"><span>{service.cat}</span><span>Side A</span></div><span className="service-number">{service.n}</span><h3>{service.title}</h3><p>{service.desc}</p><ServiceIcon type={service.icon} /></div></article>)}</div>
+          </div>
+
+          <div className="projects-panel" style={{ opacity: projectIn * (1 - night), pointerEvents: projectIn > .5 && night < .5 ? "auto" : "none" }}>
+            <div className="projects-kicker"><p className="eyebrow"><span />Side A · Track 04 · Projects<span /></p></div>
+            <div className="project-info" key={`info-${activeIndex}`}><h3>{activeProject.title}</h3><div><span>Type</span><strong>{activeProject.type}</strong></div><div><span>Year</span><strong>{activeProject.year}</strong></div><div><span>Built with</span><strong>{activeProject.stack.map(item => <span key={item}>{item}</span>)}</strong></div></div>
+            <div className="project-count"><strong>0{activeIndex + 1} / 0{projects.length}</strong><span>Scroll or drag</span></div>
+            <div className="disc-stage">{projects.map((project, index) => <ProjectDisc key={project.title} project={project} index={index} activeFloat={activeFloat} visible={projectIn} onOpen={() => setDetailIndex(index)} onSelect={() => goProject(index)} onDragStart={onDragStart} onDragMove={onDragMove} onDragEnd={onDragEnd} />)}</div>
+            <div className="project-quotes" key={`quotes-${activeIndex}`}>{activeProject.quotes.map(([source, text]) => <div key={source + text}><span>★★★★★</span><small>{source}</small><strong>{text}</strong></div>)}</div>
+          </div>
+          <div className="night-wave" style={{ transform: `translateY(${100 - night * 110}%)` }}><svg viewBox="0 0 1440 120" preserveAspectRatio="none"><path d="M0 70C180 20 300 110 480 58S790 22 960 65s310-30 480-5V120H0Z" fill="#030304" /></svg><div /></div>
+        </div>
+      </section>
+
+      <section ref={contactRef} className="contact-section">
+        <div className="contact-intro-track">
+          <div className="contact-intro">
+            <TurntableCanvas progress={0} dark playing={playing} onToggle={() => setPlaying(value => !value)} />
+            <div className="contact-heading" style={{ opacity: clamp((contactProgress - .15) / .35), transform: `translateY(${(1 - clamp((contactProgress - .15) / .35)) * 24}px)` }}><div className="contact-track-label"><span>Side B · Start a conversation</span><span>05</span></div><div><h2>Let's make<span><em>Side B</em> together.</span></h2><p>An idea, a product, a role, or a hackathon team that needs one more builder. <strong>I'd like to hear it.</strong></p></div></div>
+          </div>
+        </div>
+        <div className="contact-content">
+          <div className="email-row"><a href="mailto:shreeyanshsingh07@gmail.com">shreeyanshsingh07@gmail.com</a><a href="mailto:shreeyanshsingh07@gmail.com" aria-label="Email Shreeyansh"><ArrowIcon /></a></div>
+          <div className="contact-grid">
+            <form className="signal-form" onSubmit={sendSignal}><div className="form-heading"><div><span>Transmission · SY-1</span><h3>Send a <em>signal</em></h3></div><svg viewBox="0 0 120 130" aria-hidden="true"><ellipse cx="60" cy="124" rx="40" ry="5" fill="rgba(240,194,122,.12)" stroke="rgba(240,194,122,.4)" /><g transform="translate(60 92) rotate(-90)"><Spaceship /></g></svg></div><div className="form-row"><label>Name<input name="name" type="text" autoComplete="name" placeholder="Your name" /></label><label>Email<input name="email" type="email" autoComplete="email" placeholder="you@company.com" required /></label></div><label>Message<textarea name="message" rows="4" placeholder="What should we build?" required /></label><div className="form-submit"><p aria-live="polite">{formStatus}</p><button type="submit">Send signal <ArrowIcon direction="right" /></button></div></form>
+            <div className="contact-details"><div><span>Based in</span><strong>Mumbai, IN</strong></div><div><span>Status</span><strong className="available"><i />Available for work</strong></div><div><span>LinkedIn</span><a href="https://www.linkedin.com/in/shreeyansh-singh-858ab633b" target="_blank" rel="noreferrer">shreeyansh-singh ↗</a></div><div><span>GitHub</span><a href="https://github.com/Shreeyansh-07" target="_blank" rel="noreferrer">Shreeyansh-07 ↗</a></div><div><span>Resume</span><a href="/Shreeyansh Singh Resume .pdf" download>Download PDF ↗</a></div><p>星を見上げて、何でも作れる</p></div>
+          </div>
+          <footer className="site-footer"><span className="footer-mark"><i>/</i>S/Y</span><a href="mailto:shreeyanshsingh07@gmail.com">shreeyanshsingh07@gmail.com</a><span>© 2026 Shreeyansh Singh · Side A + B</span><button type="button" onClick={() => goTo(heroRef)}>Back to top · rewind <ArrowIcon direction="up" /></button></footer>
+        </div>
+      </section>
+    </main>
+    {detailIndex !== null && <ProjectDetail index={detailIndex} onClose={() => setDetailIndex(null)} onNext={() => setDetailIndex(index => (index + 1) % projects.length)} />}
+  </div>
+  </>
 }
