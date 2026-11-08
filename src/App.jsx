@@ -1089,7 +1089,8 @@ export default function App() {
     <button type="button" className="nav-logo" onClick={() => goTo(heroRef)} aria-label="Back to the top">Shreeyansh</button>
       <div className="nav-actions" onMouseEnter={() => setNavHover(true)} onMouseLeave={() => setNavHover(false)}>
         <nav className="nav-pill" aria-label="Sections">
-          {[["work", "projects"], ["about", "about"], ["lab", "services"], ["contact", "contact"]].map(([label, item]) => <button key={item} type="button" data-active={activeNav === item} onClick={() => {
+          {[["home", "home"], ["about", "about"], ["services", "services"], ["projects", "projects"], ["contact", "contact"]].map(([label, item]) => <button key={item} type="button" data-active={activeNav === item} onClick={() => {
+            if (item === "home") goTo(heroRef)
             if (item === "about") goTo(aboutRef, .62)
             if (item === "services") goTo(showcaseRef, .28)
             if (item === "projects") goTo(showcaseRef, .58)
@@ -1097,6 +1098,7 @@ export default function App() {
           }}>{label}</button>)}
         </nav>
         <button type="button" className={`theme-toggle ${heroDark ? "is-dark" : ""}`} aria-label={heroDark ? "Switch to day theme" : "Switch to night theme"} onClick={() => setHeroDark(value => !value)}><span /><em>{heroDark ? "Night" : "Day"}</em></button>
+        <button type="button" className="talk-button" onClick={() => goTo(contactRef, .75)}><span><ArrowIcon direction="right" /></span><em>Let&apos;s talk</em></button>
       </div>
     </header>
 
